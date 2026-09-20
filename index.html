@@ -635,6 +635,8 @@ body {
 }
 .president-card {border:3px solid #002395; background:rgba(255,255,255,.88);}
 
+/* ===== Secours de démarrage ===== */
+.screen-boot-fallback { opacity:1 !important; transform:none !important; }
 /* ===== Transitions entre écrans ===== */
 .screen {
   opacity: 0;
@@ -689,6 +691,438 @@ body {
 @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0,1fr)); } .brief-grid { grid-template-columns:1fr; } }
 @media (max-width: 520px) { .setup { padding-left:12px; padding-right:12px; } .action.featured .a-body strong::after { display:block; margin:3px 0 0; } }
 
+
+
+/* ============================================================
+   V14 — REFONTE VISUELLE RÉALISTE / CAMPAGNE PRÉSIDENTIELLE
+   ============================================================ */
+:root {
+  --bg: #e9edf3;
+  --card: rgba(255,255,255,.94);
+  --ink: #10203a;
+  --muted: #637089;
+  --line: #18365f;
+  --soft: #dfe6ef;
+  --accent: #b42336;
+  --on-accent: #ffffff;
+  --good: #0b6b4e;
+  --bad: #b42336;
+  --warn: #9a6500;
+  --focus: #244f92;
+  --radius: 14px;
+  color-scheme: light;
+}
+
+html { background: #e9edf3; }
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(1200px 500px at 12% -10%, rgba(24,57,110,.16), transparent 65%),
+    radial-gradient(900px 500px at 105% 12%, rgba(190,35,54,.18), transparent 64%),
+    linear-gradient(180deg,#f4f6f9 0%,#e7ecf3 48%,#dde4ed 100%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  opacity: .5;
+  background:
+    repeating-linear-gradient(0deg, rgba(16,32,58,.018) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(190,35,54,.014) 0 1px, transparent 1px 5px);
+  mix-blend-mode: multiply;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -4;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,35,149,.13) 0 11%, transparent 11% 89%, rgba(239,65,53,.16) 89% 100%),
+    radial-gradient(1000px 300px at 50% 100%, rgba(16,32,58,.09), transparent 72%);
+}
+
+.presidential-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, transparent 0 58%, rgba(16,32,58,.065) 100%),
+    linear-gradient(90deg, rgba(0,35,149,.05), transparent 38%, transparent 62%, rgba(239,65,53,.07));
+}
+
+.presidential-bg::before {
+  content: "";
+  position: absolute;
+  right: -5vw;
+  bottom: -2vh;
+  width: min(720px, 62vw);
+  height: min(420px, 42vw);
+  opacity: .19;
+  background:
+    linear-gradient(180deg, transparent 0 8%, rgba(16,32,58,.12) 8% 12%, transparent 12% 100%),
+    repeating-linear-gradient(90deg, transparent 0 8%, rgba(16,32,58,.24) 8% 10%, transparent 10% 18%),
+    linear-gradient(180deg, transparent 0 45%, rgba(16,32,58,.23) 45% 100%);
+  border-radius: 50% 50% 0 0 / 35% 35% 0 0;
+  filter: blur(.2px);
+  transform: perspective(800px) rotateY(-8deg);
+}
+
+.presidential-bg::after {
+  content: "";
+  position: absolute;
+  top: 3vh;
+  right: 3vw;
+  width: 112px;
+  height: 156px;
+  opacity: .13;
+  border: 10px solid transparent;
+  border-left-color: #002395;
+  border-right-color: #ef4135;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 8px 30px rgba(16,32,58,.08);
+  transform: skewY(-3deg);
+}
+
+.poster {
+  position: relative;
+  isolation: isolate;
+  min-height: 190px;
+  padding-top: max(22px, env(safe-area-inset-top));
+  background:
+    linear-gradient(135deg, rgba(10,29,62,.98) 0%, rgba(21,53,100,.97) 56%, rgba(164,30,47,.97) 100%);
+  border-bottom: 1px solid rgba(255,255,255,.25);
+  box-shadow: 0 16px 48px rgba(16,32,58,.24), inset 0 -1px 0 rgba(255,255,255,.16);
+  overflow: hidden;
+}
+
+.poster::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 56px;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 34%, rgba(255,255,255,.05) 66%, transparent),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 9px);
+  opacity: .75;
+}
+
+.poster::after {
+  content: "RÉPUBLIQUE · CAMPAGNE NATIONALE";
+  position: absolute;
+  right: 20px;
+  bottom: 17px;
+  font-size: .67rem;
+  font-weight: 900;
+  letter-spacing: .18em;
+  color: rgba(255,255,255,.48);
+  white-space: nowrap;
+}
+
+.poster-top { position: relative; }
+.poster-tag { letter-spacing: .07em; text-transform: uppercase; font-size: .72rem; opacity: .86; }
+.poster h1 { text-shadow: 0 2px 18px rgba(0,0,0,.22); }
+.poster-sub { max-width: 760px; color: rgba(255,255,255,.88); }
+
+.timeline ol {
+  gap: 5px;
+}
+.timeline li {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+}
+.timeline li.done { background: linear-gradient(90deg,rgba(255,255,255,.54),rgba(255,255,255,.76)); opacity: 1; }
+.timeline li.now { height: 13px; background: linear-gradient(90deg,#fff,#f2f5f9); box-shadow: 0 2px 8px rgba(0,0,0,.28); }
+.timeline li.vote { border: 1px solid rgba(255,255,255,.72); background: rgba(255,255,255,.03); }
+.timeline p { color: rgba(255,255,255,.84); }
+
+.layout { padding-top: 22px; }
+
+.panel {
+  position: relative;
+  background: var(--card);
+  border: 1px solid rgba(24,54,95,.22);
+  border-radius: 16px;
+  box-shadow:
+    0 16px 35px rgba(16,32,58,.10),
+    0 2px 6px rgba(16,32,58,.06),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg,#002395 0 33%,#fff 33% 66%,#ef4135 66% 100%);
+  opacity: .9;
+}
+
+.panel-head { min-height: 34px; }
+.panel-head h2 { color: #102746; letter-spacing: -.018em; }
+
+.stats { gap: 12px; }
+.stat {
+  position: relative;
+  background: linear-gradient(180deg,rgba(255,255,255,.98),rgba(247,249,252,.94));
+  border: 1px solid rgba(24,54,95,.18);
+  box-shadow: 0 12px 26px rgba(16,32,58,.08), inset 0 1px 0 rgba(255,255,255,.95);
+  overflow: hidden;
+}
+.stat::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  right: -32px;
+  top: -40px;
+  background: radial-gradient(circle,rgba(24,54,95,.10),transparent 68%);
+  pointer-events: none;
+}
+.stat-label { color: #66758d; font-size: .77rem; text-transform: uppercase; letter-spacing: .065em; }
+.stat-val { color: #0f2039; font-variant-numeric: tabular-nums; }
+.bar { height: 9px; background: #e7ecf2; border: 1px solid rgba(16,32,58,.05); box-shadow: inset 0 1px 2px rgba(16,32,58,.08); }
+.bar i { background: linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 65%,#fff)); box-shadow: 0 0 8px color-mix(in srgb,var(--accent) 20%,transparent); }
+
+.actions-grid { gap: 12px; }
+.action {
+  position: relative;
+  border: 1px solid rgba(24,54,95,.22);
+  background: linear-gradient(180deg,#fff 0%,#f7f9fb 100%);
+  box-shadow: 0 9px 22px rgba(16,32,58,.07), inset 0 1px 0 #fff;
+  border-radius: 14px;
+  min-height: 96px;
+}
+.action::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(180deg,#002395,#ef4135);
+  opacity: .7;
+}
+.action:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 17px 30px rgba(16,32,58,.12), inset 0 1px 0 #fff; }
+.action.featured { box-shadow: 0 0 0 1px rgba(180,35,54,.28), 0 14px 28px rgba(16,32,58,.10); }
+.a-ico {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#eef3f9,#fff);
+  border: 1px solid rgba(24,54,95,.16);
+  box-shadow: inset 0 1px 0 #fff, 0 4px 10px rgba(16,32,58,.07);
+}
+.a-body strong { color:#102746; }
+.a-desc { color:#697991; }
+.a-meta em { border: 1px solid rgba(24,54,95,.07); }
+
+.poll-list { gap: 12px; }
+.poll-row { min-height: 28px; }
+.poll-name { color:#193050; }
+.poll-bar { height: 15px; background: linear-gradient(180deg,#eef2f6,#e3e8ee); border: 1px solid rgba(16,32,58,.07); box-shadow: inset 0 1px 2px rgba(16,32,58,.08); }
+.poll-bar b { border-radius: 4px; background-image: linear-gradient(90deg,rgba(255,255,255,.22),transparent 28%,rgba(255,255,255,.12)); box-shadow: inset 0 1px 0 rgba(255,255,255,.23); }
+.poll-val { color:#142946; }
+.chart { padding-top: 4px; }
+
+.news-list li {
+  position: relative;
+  padding: 11px 0;
+}
+.news-list li::after { content:""; position:absolute; left:2.65em; right:0; bottom:0; border-bottom:1px dashed rgba(24,54,95,.10); }
+.news-list .wk { font-size:.73rem; text-transform:uppercase; letter-spacing:.06em; }
+
+.presidential-panel {
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.98),rgba(242,246,250,.94)),
+    linear-gradient(90deg,rgba(0,35,149,.05),transparent 45%,rgba(239,65,53,.06));
+}
+.brief-card {
+  background: linear-gradient(180deg,#fff,#f6f8fb);
+  border:1px solid rgba(24,54,95,.17);
+  box-shadow: 0 8px 18px rgba(16,32,58,.055), inset 0 1px 0 #fff;
+}
+.badge { box-shadow: inset 0 1px 0 rgba(255,255,255,.7); }
+
+#media-center {
+  background:
+    linear-gradient(180deg,rgba(14,27,47,.985),rgba(24,43,71,.97));
+  color:#eef4fb;
+  border-color: rgba(11,31,57,.35);
+  box-shadow: 0 18px 38px rgba(7,21,40,.22), inset 0 1px 0 rgba(255,255,255,.09);
+}
+#media-center::before { background: linear-gradient(90deg,#ef4135 0 33%,#fff 33% 66%,#002395 66% 100%); }
+#media-center .panel-head h2, #media-center h2 { color:#fff; }
+#media-center p, #media-center small { color:rgba(236,244,252,.72); }
+.media-stack { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.media-card {
+  position:relative;
+  background: linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 20px rgba(0,0,0,.12);
+  color:#eff5fb;
+  padding: 12px 12px 11px 14px;
+}
+.media-card::before {
+  content:"LIVE";
+  position:absolute;
+  right:10px;
+  top:9px;
+  padding:2px 6px;
+  border-radius:999px;
+  font-size:.58rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  background:#d83245;
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(216,50,69,.13);
+}
+.media-card::after {
+  content:"";
+  position:absolute;
+  left:0;
+  top:13px;
+  bottom:13px;
+  width:3px;
+  background:linear-gradient(180deg,#fff,rgba(255,255,255,.15));
+}
+.media-card b { color:#fff; padding-right:38px; }
+
+#alliance-box {
+  background: linear-gradient(135deg,rgba(255,255,255,.98),rgba(247,248,251,.96));
+}
+#alliance-box::after {
+  content:"";
+  position:absolute;
+  right:18px;
+  top:16px;
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  background: conic-gradient(from 0deg,#002395 0 33%,#f7f7f7 33% 66%,#ef4135 66% 100%);
+  opacity:.075;
+}
+
+#achievements .achievement {
+  background: linear-gradient(180deg,#fff,#f7f9fb);
+  border-color: rgba(24,54,95,.18);
+  box-shadow: 0 7px 14px rgba(16,32,58,.055), inset 0 1px 0 #fff;
+}
+.achievement strong::first-letter { font-size:1.12em; }
+
+.endbar {
+  background: rgba(255,255,255,.93);
+  border-top: 1px solid rgba(24,54,95,.18);
+  box-shadow: 0 -10px 28px rgba(16,32,58,.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.endbar .btn.primary { box-shadow: 0 9px 20px color-mix(in srgb,var(--accent) 23%,transparent); }
+
+.btn {
+  border: 1px solid rgba(24,54,95,.24);
+  box-shadow: 0 4px 10px rgba(16,32,58,.06), inset 0 1px 0 #fff;
+  background: linear-gradient(180deg,#fff,#f1f4f7);
+}
+.btn:hover:not(:disabled) { box-shadow: 0 10px 18px rgba(16,32,58,.11), inset 0 1px 0 #fff; }
+.btn.primary { background: linear-gradient(180deg,color-mix(in srgb,var(--accent) 86%,#fff),var(--accent)); border-color: color-mix(in srgb,var(--accent) 78%,#000); box-shadow: 0 9px 20px color-mix(in srgb,var(--accent) 20%,transparent), inset 0 1px 0 rgba(255,255,255,.24); }
+.btn.on-accent { box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
+
+.overlay {
+  background: rgba(8,18,34,.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.modal {
+  border: 1px solid rgba(255,255,255,.28);
+  box-shadow: 0 28px 70px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.9);
+  background: linear-gradient(180deg,#fff,#f7f9fb);
+}
+.choice {
+  border:1px solid rgba(24,54,95,.20);
+  background:linear-gradient(180deg,#fff,#f5f7fa);
+  box-shadow:0 6px 14px rgba(16,32,58,.05), inset 0 1px 0 #fff;
+}
+.choice:hover { box-shadow:0 12px 22px rgba(16,32,58,.10), inset 0 1px 0 #fff; }
+
+.results .rbar { height: 15px; background: linear-gradient(180deg,#eef2f6,#e2e7ed); border:1px solid rgba(16,32,58,.07); box-shadow: inset 0 1px 2px rgba(16,32,58,.08); }
+.results .rbar b { border-radius:4px; box-shadow: inset 0 1px 0 rgba(255,255,255,.25); }
+
+.setup {
+  position: relative;
+  max-width: 820px;
+}
+.setup::before {
+  content:"";
+  position:absolute;
+  inset:12px 10px auto;
+  height:92px;
+  border-radius:20px;
+  background: linear-gradient(90deg,rgba(0,35,149,.07),rgba(255,255,255,.55) 45%,rgba(239,65,53,.08));
+  pointer-events:none;
+}
+.setup .field > span, .setup legend { color:#163053; }
+.field input[type="text"] {
+  border:1px solid rgba(24,54,95,.22);
+  background:rgba(255,255,255,.95);
+  box-shadow: inset 0 1px 2px rgba(16,32,58,.04), 0 4px 10px rgba(16,32,58,.035);
+}
+.option > span {
+  border:1px solid rgba(24,54,95,.20);
+  background:linear-gradient(180deg,#fff,#f5f7fa);
+  box-shadow:0 7px 15px rgba(16,32,58,.05), inset 0 1px 0 #fff;
+}
+.option input:checked + span {
+  box-shadow:0 10px 22px color-mix(in srgb,var(--accent) 16%,transparent), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.swatch span {
+  border:1px solid rgba(24,54,95,.28);
+  box-shadow:0 6px 12px rgba(16,32,58,.08), inset 0 1px 0 rgba(255,255,255,.38);
+}
+
+/* Transitions plus naturelles */
+.screen.screen-visible { animation: pageReveal .42s cubic-bezier(.18,.75,.2,1); }
+@keyframes pageReveal {
+  from { opacity:0; transform: translateY(18px) scale(.992); filter: blur(2px); }
+  to   { opacity:1; transform:none; filter:none; }
+}
+
+/* Petits détails de finition */
+.status-line { letter-spacing:.01em; }
+.flash-headline { padding:10px 12px; border-radius:10px; background:linear-gradient(90deg,rgba(239,65,53,.10),transparent); border-left:3px solid #ef4135; }
+.autosave-dot { box-shadow:0 0 0 4px rgba(11,107,78,.10); }
+
+@media (max-width: 760px) {
+  .poster { min-height: 175px; }
+  .poster::after { display:none; }
+  .media-stack { grid-template-columns: 1fr; }
+  .panel { border-radius:14px; }
+  .action { min-height:90px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen.screen-visible { animation:none; }
+}
 </style>
 </head>
 <body>
@@ -701,7 +1135,7 @@ body {
 
 
 <!-- ============ ÉCRAN 1 : création du parti ============ -->
-<section id="screen-setup" class="screen" hidden>
+<section id="screen-setup" class="screen screen-boot-fallback">
   <div class="poster" id="setup-poster">
     <p class="poster-tag">Élection présidentielle, pays imaginaire</p>
     <h1 id="preview-name">Mouvement Citoyen</h1>
@@ -713,10 +1147,11 @@ body {
       <legend>Choisir ton départ politique</legend>
       <div class="options options-3">
         <label class="option"><input type="radio" name="partyMode" value="create" checked><span><strong>Créer mon parti</strong><small>Lancer ton propre mouvement.</small></span></label>
-        <label class="option"><input type="radio" name="partyMode" value="join"><span><strong>Rejoindre un parti fictif</strong><small>Devenir candidat d'un mouvement existant.</small></span></label>
+        <label class="option"><input type="radio" name="partyMode" value="join"><span><strong>Rejoindre un parti réel</strong><small>Débuter dans un parti politique existant.</small></span></label>
       </div>
       <div class="options" id="party-join-list"></div>
       <p class="setup-note">🎮 Ton choix change ton point de départ, mais aucun parti n’est automatiquement gagnant.</p>
+    <p class="hint">Les noms des partis ci-dessus sont leurs noms actuels en France ; leurs programmes, leurs dirigeants réels et l’issue de l’élection ne sont pas reproduits : le scénario et les candidats du jeu restent fictifs.</p>
     </fieldset>
 
     <div class="field-row">
@@ -757,7 +1192,7 @@ body {
     </fieldset>
 
     <button type="submit" class="btn primary big">Lancer la campagne</button>
-    <p class="hint center">Les partis et personnages rivaux sont fictifs. Ta partie est sauvegardée automatiquement dans ce navigateur.</p>
+    <p class="hint center">Les rivaux et l’univers électoral du jeu restent fictifs ; les partis proposés à l’entrée correspondent à des partis réels. Ta partie est sauvegardée automatiquement dans ce navigateur.</p>
   </form>
 </section>
 
@@ -830,13 +1265,19 @@ body {
    1. DONNÉES
    ============================================================ */
 
-const SAVE_KEY = 'cap-presidence:save:v1';
+const SAVE_KEY = 'cap-presidence:save:v2';
 
 const JOINABLE_PARTIES = [
- {name:'Union Républicaine Moderne', color:'#002395'},
- {name:'Écologie Nouvelle', color:'#3aa860'},
- {name:'Alliance Sociale Populaire', color:'#ef4135'},
- {name:'Centre du Renouveau', color:'#e6b422'}
+  { name:'Rassemblement National', color:'#1f3f8f' },
+  { name:'Renaissance', color:'#f4c542' },
+  { name:'Les Républicains', color:'#173b78' },
+  { name:'La France insoumise', color:'#8b1e3f' },
+  { name:'Parti socialiste', color:'#e83f6f' },
+  { name:'Les Écologistes', color:'#2e8b57' },
+  { name:'Mouvement Démocrate (MoDem)', color:'#f0b429' },
+  { name:'Horizons', color:'#102a43' },
+  { name:'Parti communiste français', color:'#c62828' },
+  { name:'Reconquête', color:'#243447' }
 ];
 
 const MEDIA_PROFILES = [
@@ -2309,13 +2750,25 @@ function toastPlain(text) {
 function init() {
   const boot = document.getElementById('boot-msg');
   if (boot) boot.remove();
-  bindGlobalEvents();
-  state = loadSave();
-  if (!state) { showSetup(); return; }
-  render();
-  if (state.phase === 'campaign') {
-    if (!state.introSeen) showIntro();
-    else showPendingEvent();
+  try {
+    bindGlobalEvents();
+    state = loadSave();
+    if (!state) { showSetup(); return; }
+    render();
+    if (state.phase === 'campaign') {
+      if (!state.introSeen) showIntro();
+      else showPendingEvent();
+    }
+  } catch (err) {
+    console.error('Cap Présidence — erreur de démarrage', err);
+    clearSave();
+    try { showSetup(); } catch (_) {}
+    const note = document.createElement('div');
+    note.className = 'setup-note';
+    note.style.margin = '16px';
+    note.textContent = 'Le jeu a réparé une ancienne sauvegarde incompatible. La nouvelle partie est prête.';
+    const setup = document.getElementById('screen-setup');
+    if (setup) setup.prepend(note);
   }
 }
 
