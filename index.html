@@ -607,9 +607,49 @@ button, input { font: inherit; color: inherit; }
   .options.options-3 { grid-template-columns: repeat(3, 1fr); }
 }
 
+
+/* ===== Correction ambiance présidentielle v6 ===== */
+body {
+  background:
+    linear-gradient(90deg, rgba(0,35,149,.32) 0%, rgba(0,35,149,.12) 32%, rgba(255,255,255,.18) 50%, rgba(239,65,53,.38) 100%),
+    linear-gradient(135deg,#dce7ff,#ffffff 45%,#ffd9dc);
+}
+.presidential-bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg, rgba(0,35,149,.38) 0 33%, rgba(255,255,255,.22) 33% 66%, rgba(239,65,53,.48) 66% 100%),
+    radial-gradient(circle at 70% 25%, rgba(239,65,53,.35), transparent 30%),
+    radial-gradient(circle at 15% 20%, rgba(0,35,149,.3), transparent 32%);
+}
+.presidential-bg::after{
+ content:"🇫🇷";
+ position:absolute;
+ right:3%;
+ top:8%;
+ font-size:220px;
+ opacity:.09;
+}
+.president-card {border:3px solid #002395; background:rgba(255,255,255,.88);}
+#france-map{
+ margin-top:12px;
+ padding:20px;
+ border:3px solid #002395;
+ border-radius:14px;
+ background:linear-gradient(135deg,#eef5ff,#fff0f1);
+ overflow:hidden;
+}
+.fr-map-svg{width:100%;max-width:430px;height:250px;display:block;margin:auto;}
+.fr-region{fill:#f8fafc;stroke:#002395;stroke-width:3;}
+.fr-city{fill:#ef4135;stroke:#fff;stroke-width:3;}
+.fr-label{font-size:13px;font-weight:800;fill:#101a33;}
 </style>
 </head>
 <body>
+<div class="presidential-bg"></div>
+
 
 <noscript>
   <p class="noscript">Cap Présidence a besoin de JavaScript pour fonctionner. Active-le dans ton navigateur puis recharge la page.</p>
@@ -625,6 +665,15 @@ button, input { font: inherit; color: inherit; }
   </div>
 
   <form id="setup-form" class="setup" autocomplete="off">
+    <fieldset class="field">
+      <legend>Choisir ton départ politique</legend>
+      <div class="options options-3">
+        <label class="option"><input type="radio" name="partyMode" value="create" checked><span><strong>Créer mon parti</strong><small>Lancer ton propre mouvement.</small></span></label>
+        <label class="option"><input type="radio" name="partyMode" value="join"><span><strong>Rejoindre un parti fictif</strong><small>Devenir candidat d'un mouvement existant.</small></span></label>
+      </div>
+      <div class="options" id="party-join-list"></div>
+    </fieldset>
+
     <div class="field-row">
       <label class="field">
         <span>Nom de ton parti</span>
@@ -679,6 +728,19 @@ button, input { font: inherit; color: inherit; }
     <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
     <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
     <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
+    <section id="campaign-map" class="panel president-card"><h2>🇫🇷 Carte de campagne</h2><p>Déplacements régionaux, meetings et bastions électoraux.</p><div id="france-map">
+<svg class="fr-map-svg" viewBox="0 0 420 230" aria-label="Carte de campagne française fictive">
+<path class="fr-region" d="M150 18 L230 28 L275 70 L340 95 L325 145 L285 165 L260 220 L190 205 L150 170 L90 150 L55 105 L85 60 Z"/>
+<path class="fr-region" d="M90 150 L55 105 M150 170 L190 205 M230 28 L275 70" fill="none"/>
+<circle class="fr-city" cx="220" cy="85" r="7"/><text class="fr-label" x="230" y="82">Paris</text>
+<circle class="fr-city" cx="120" cy="105" r="7"/><text class="fr-label" x="65" y="100">Nantes</text>
+<circle class="fr-city" cx="275" cy="135" r="7"/><text class="fr-label" x="285" y="140">Lyon</text>
+<circle class="fr-city" cx="250" cy="185" r="7"/><text class="fr-label" x="260" y="190">Marseille</text>
+<circle class="fr-city" cx="125" cy="165" r="7"/><text class="fr-label" x="70" y="170">Bordeaux</text>
+</svg>
+</div></section>
+    <section id="media-center" class="panel"><h2>📺 Médias nationaux</h2><p id="media-feed">Les chaînes et journaux analysent ta campagne.</p></section>
+    <section id="alliance-box" class="panel"><h2>🤝 Alliances du second tour</h2><p id="alliance-feed">Les négociations apparaîtront après le premier tour.</p></section>
   </main>
 
   <footer class="endbar">
@@ -728,6 +790,13 @@ button, input { font: inherit; color: inherit; }
    ============================================================ */
 
 const SAVE_KEY = 'cap-presidence:save:v1';
+
+const JOINABLE_PARTIES = [
+ {name:'Union Républicaine Moderne', color:'#002395'},
+ {name:'Écologie Nouvelle', color:'#3aa860'},
+ {name:'Alliance Sociale Populaire', color:'#ef4135'},
+ {name:'Centre du Renouveau', color:'#e6b422'}
+];
 
 const CONFIG = {
   firstRoundWeek: 10,   // le 1er tour a lieu à la fin de cette semaine
@@ -1412,6 +1481,40 @@ function startWeek() {
   showPendingEvent();
 }
 
+
+
+/* ===== Extensions : débats hebdomadaires, partis fictifs, ambiance présidentielle ===== */
+const FICTION_PARTIES = [
+ {name:'Renouveau Républicain', icon:'🇫🇷'},
+ {name:'Union Populaire Moderne', icon:'🟦'},
+ {name:'Alliance Verte Citoyenne', icon:'🌱'},
+ {name:'Mouvement des Territoires', icon:'🏛️'},
+ {name:'Nouvelle Voie Sociale', icon:'🤝'}
+];
+
+const GRAND_DEBATES = [
+ ['Débat économique national','Pouvoir d’achat, emploi et entreprises sont au centre des échanges.'],
+ ['Débat écologique','Les candidats confrontent leurs visions de la transition.'],
+ ['Débat sécurité et justice','Une soirée consacrée aux institutions et à la sécurité.'],
+ ['Débat jeunesse','Éducation, logement et avenir des jeunes au programme.'],
+ ['Débat international','Crises mondiales et diplomatie sont discutées.']
+];
+
+function presidentialWeeklyEvent(){
+ const d=GRAND_DEBATES[state.week % GRAND_DEBATES.length];
+ return {id:'weekly-debate-'+state.week, kind:'debate', title:d[0], text:d[1], choices:[
+  {label:'Préparer un grand discours',hint:'Plus de visibilité, mais risque de paraître trop préparé.',outcomes:[o(.7,'Ton intervention marque les esprits.',{popularity:4,credibility:2}),o(.3,'Le public trouve le discours trop froid.',{popularity:-2})]},
+  {label:'Débattre avec les citoyens',hint:'Créer de la proximité.',outcomes:[o(.8,'Les échanges renforcent ton image.',{mobilization:4,popularity:2}),o(.2,'Une question difficile te déstabilise.',{credibility:-2})]},
+  {label:'Attaquer les rivaux',hint:'Stratégie risquée.',outcomes:[o(.5,'Ta phrase devient virale.',{popularity:5}),o(.5,'Les adversaires dénoncent une attaque.',{credibility:-4})]}
+ ]};
+}
+
+const oldChooseEvent = chooseEvent;
+chooseEvent = function(){
+ if(Math.random()<0.45) return presidentialWeeklyEvent();
+ return oldChooseEvent();
+};
+
 /* ---------- Scrutins ---------- */
 
 function runFirstRound() {
@@ -1532,6 +1635,7 @@ function render() {
   renderActions();
   renderPolls();
   renderNews();
+  renderExtraPresidential();
   renderEndbar();
   if (wasHidden) showScreen('game');
 }
@@ -1548,6 +1652,8 @@ function showSetup() {
 }
 
 function renderSetupPickers() {
+  const jp=document.getElementById('party-join-list');
+  if(jp) jp.innerHTML=JOINABLE_PARTIES.map((p,i)=>`<label class="option"><input type="radio" name="joinedParty" value="${i}"><span><strong>${p.name}</strong></span></label>`).join('');
   $('#color-picker').innerHTML = PARTY_COLORS.map((c, i) => `
     <label class="swatch"><input type="radio" name="color" value="${c}" ${i === 0 ? 'checked' : ''} aria-label="Couleur ${i + 1}"><span style="--c:${c}"></span></label>`).join('');
 
@@ -1587,7 +1693,7 @@ function renderPoster() {
   const theme = THEMES.find(t => t.id === state.party.theme);
   const runoff = state.round === 2;
   $('#poster-tag').textContent = `Semaine ${state.week} sur ${CONFIG.lastWeek}`;
-  $('#poster-title').textContent = state.party.name;
+  $('#poster-title').textContent = '🇫🇷 ' + state.party.name;
   $('#poster-sub').textContent = `${state.party.leader}, thème : ${theme.label}`;
 
   const target = runoff ? CONFIG.lastWeek : CONFIG.firstRoundWeek;
@@ -1713,6 +1819,13 @@ function renderNews() {
 }
 
 /* ---------- Barre du bas ---------- */
+
+function renderExtraPresidential(){
+ const m=document.getElementById('media-feed');
+ const a=document.getElementById('alliance-feed');
+ if(m) m.innerHTML=`<div class="media-channel">📺 Canal République : débat sur ton programme</div><div class="media-channel">📰 Le Journal National : analyse de tes déplacements</div><div class="media-channel">🎙️ Radio Citoyenne : interview de la semaine</div>`;
+ if(a && state && state.round>=1) a.textContent='Les partis fictifs discutent des reports de voix et des accords de second tour.';
+}
 
 function renderEndbar() {
   const dots = Array.from({ length: CONFIG.apPerWeek }, (_, i) => `<i class="${i < state.ap ? 'on' : ''}"></i>`).join('');
@@ -1911,8 +2024,10 @@ function bindGlobalEvents() {
   form.addEventListener('submit', e => {
     e.preventDefault();
     const fd = new FormData(form);
+    let chosenParty = (fd.get('party') || '').trim() || 'Mouvement Citoyen';
+    if(fd.get('partyMode')==='join') chosenParty = JOINABLE_PARTIES[Number(fd.get('joinedParty')||0)]?.name || JOINABLE_PARTIES[0].name;
     startNewGame({
-      name: (fd.get('party') || '').trim() || 'Mouvement Citoyen',
+      name: chosenParty,
       leader: (fd.get('leader') || '').trim() || 'Alex Durand',
       color: PARTY_COLORS.includes(fd.get('color')) ? fd.get('color') : PARTY_COLORS[0],
       theme: THEMES.some(t => t.id === fd.get('theme')) ? fd.get('theme') : THEMES[0].id,
