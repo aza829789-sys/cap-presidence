@@ -633,18 +633,6 @@ body {
  opacity:.09;
 }
 .president-card {border:3px solid #002395; background:rgba(255,255,255,.88);}
-#france-map{
- margin-top:12px;
- padding:20px;
- border:3px solid #002395;
- border-radius:14px;
- background:linear-gradient(135deg,#eef5ff,#fff0f1);
- overflow:hidden;
-}
-.fr-map-svg{width:100%;max-width:430px;height:250px;display:block;margin:auto;}
-.fr-region{fill:#f8fafc;stroke:#002395;stroke-width:3;}
-.fr-city{fill:#ef4135;stroke:#fff;stroke-width:3;}
-.fr-label{font-size:13px;font-weight:800;fill:#101a33;}
 </style>
 </head>
 <body>
@@ -728,17 +716,6 @@ body {
     <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
     <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
     <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
-    <section id="campaign-map" class="panel president-card"><h2>🇫🇷 Carte de campagne</h2><p>Déplacements régionaux, meetings et bastions électoraux.</p><div id="france-map">
-<svg class="fr-map-svg" viewBox="0 0 420 230" aria-label="Carte de campagne française fictive">
-<path class="fr-region" d="M150 18 L230 28 L275 70 L340 95 L325 145 L285 165 L260 220 L190 205 L150 170 L90 150 L55 105 L85 60 Z"/>
-<path class="fr-region" d="M90 150 L55 105 M150 170 L190 205 M230 28 L275 70" fill="none"/>
-<circle class="fr-city" cx="220" cy="85" r="7"/><text class="fr-label" x="230" y="82">Paris</text>
-<circle class="fr-city" cx="120" cy="105" r="7"/><text class="fr-label" x="65" y="100">Nantes</text>
-<circle class="fr-city" cx="275" cy="135" r="7"/><text class="fr-label" x="285" y="140">Lyon</text>
-<circle class="fr-city" cx="250" cy="185" r="7"/><text class="fr-label" x="260" y="190">Marseille</text>
-<circle class="fr-city" cx="125" cy="165" r="7"/><text class="fr-label" x="70" y="170">Bordeaux</text>
-</svg>
-</div></section>
     <section id="media-center" class="panel"><h2>📺 Médias nationaux</h2><p id="media-feed">Les chaînes et journaux analysent ta campagne.</p></section>
     <section id="alliance-box" class="panel"><h2>🤝 Alliances du second tour</h2><p id="alliance-feed">Les négociations apparaîtront après le premier tour.</p></section>
   </main>
@@ -2072,6 +2049,7 @@ function init() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
+
 
 </script>
 </body>
