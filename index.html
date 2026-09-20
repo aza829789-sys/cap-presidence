@@ -65,6 +65,7 @@ body {
 body.modal-open { overflow: hidden; }
 
 .screen[hidden] { display: none; }
+.screen:not([hidden]) { opacity: 1; transform: none; }
 
 h1, h2, h3, p { margin: 0; }
 
@@ -286,7 +287,7 @@ button, input { font: inherit; color: inherit; }
 .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
 @media (min-width: 700px) {
-  .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 
 .stat {
@@ -633,6 +634,61 @@ body {
  opacity:.09;
 }
 .president-card {border:3px solid #002395; background:rgba(255,255,255,.88);}
+
+/* ===== Transitions entre écrans ===== */
+.screen {
+  opacity: 0;
+  transform: translateY(14px) scale(.995);
+  transition: opacity .28s ease, transform .34s cubic-bezier(.2,.75,.25,1);
+  will-change: opacity, transform;
+}
+.screen.screen-visible {
+  opacity: 1;
+  transform: none;
+}
+.screen.screen-leaving {
+  opacity: 0;
+  transform: translateY(-10px) scale(.997);
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen { transition: none; }
+}
+
+
+/* ===== V13 — amélioration gameplay + lisibilité ===== */
+.setup .field input[type="text"] { min-height: 46px; }
+.setup .party-join-hidden { display:none !important; }
+.setup-note { padding: 10px 12px; border-left: 5px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--card)); border-radius: 8px; font-weight: 700; }
+.stat.momentum .stat-val { color: #0b5cab; }
+.stat.momentum .bar i { background: #0b5cab; }
+.presidential-panel { background: linear-gradient(135deg, rgba(0,35,149,.05), rgba(239,65,53,.07)); }
+.brief-grid { display:grid; grid-template-columns: minmax(0,1.25fr) minmax(0,.75fr); gap:12px; }
+.brief-card { border:2px solid var(--line); border-radius:10px; padding:12px; background:var(--card); }
+.brief-card strong { display:block; margin-bottom:4px; }
+.brief-badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.badge { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; background:var(--soft); font-size:.82rem; font-weight:800; }
+.badge.accent { background:var(--accent); color:var(--on-accent); }
+.badge.good { color:var(--good); border:1.5px solid currentColor; background:transparent; }
+.badge.bad { color:var(--bad); border:1.5px solid currentColor; background:transparent; }
+.action.featured { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.action.featured .a-body strong::after { content:"★ CONSEILLÉE"; margin-left:8px; font-size:.68rem; letter-spacing:.04em; color:var(--accent); vertical-align:middle; }
+.action .streak-badge { color:var(--warn); font-size:.78rem; font-weight:800; }
+.media-stack { display:grid; gap:8px; }
+.media-card { border:2px solid var(--soft); border-radius:10px; padding:9px 10px; background:var(--card); }
+.media-card b { display:block; font-size:.82rem; margin-bottom:2px; }
+.media-card small { color:var(--muted); }
+.achievement-list { display:flex; flex-wrap:wrap; gap:8px; }
+.achievement { padding:8px 10px; border:2px solid var(--line); border-radius:10px; background:var(--card); min-width:140px; }
+.achievement.locked { opacity:.48; }
+.achievement strong { display:block; font-size:.86rem; }
+.achievement small { color:var(--muted); }
+.autosave-dot { width:9px; height:9px; border-radius:50%; display:inline-block; background:var(--good); vertical-align:middle; margin-right:5px; }
+.autosave-dot.warn { background:var(--warn); }
+.status-line { font-size:.82rem; color:var(--muted); font-weight:700; }
+.flash-headline { font-weight:900; font-size:1.05rem; letter-spacing:-.02em; }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0,1fr)); } .brief-grid { grid-template-columns:1fr; } }
+@media (max-width: 520px) { .setup { padding-left:12px; padding-right:12px; } .action.featured .a-body strong::after { display:block; margin:3px 0 0; } }
+
 </style>
 </head>
 <body>
@@ -660,6 +716,7 @@ body {
         <label class="option"><input type="radio" name="partyMode" value="join"><span><strong>Rejoindre un parti fictif</strong><small>Devenir candidat d'un mouvement existant.</small></span></label>
       </div>
       <div class="options" id="party-join-list"></div>
+      <p class="setup-note">🎮 Ton choix change ton point de départ, mais aucun parti n’est automatiquement gagnant.</p>
     </fieldset>
 
     <div class="field-row">
@@ -672,6 +729,11 @@ body {
         <input type="text" name="leader" id="input-leader" maxlength="24" placeholder="Alex Durand">
       </label>
     </div>
+
+    <label class="field">
+      <span>Slogan de campagne</span>
+      <input type="text" name="slogan" id="input-slogan" maxlength="60" placeholder="Le pays avant tout, ensemble.">
+    </label>
 
     <fieldset class="field">
       <legend>Couleur de campagne</legend>
@@ -716,8 +778,10 @@ body {
     <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
     <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
     <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
+    <section id="weekly-brief" class="panel presidential-panel" aria-label="Briefing de la semaine"></section>
     <section id="media-center" class="panel"><h2>📺 Médias nationaux</h2><p id="media-feed">Les chaînes et journaux analysent ta campagne.</p></section>
     <section id="alliance-box" class="panel"><h2>🤝 Alliances du second tour</h2><p id="alliance-feed">Les négociations apparaîtront après le premier tour.</p></section>
+    <section id="achievements" class="panel"><h2>🏅 Faits marquants</h2><div id="achievement-feed"></div></section>
   </main>
 
   <footer class="endbar">
@@ -775,6 +839,73 @@ const JOINABLE_PARTIES = [
  {name:'Centre du Renouveau', color:'#e6b422'}
 ];
 
+const MEDIA_PROFILES = [
+  { name:'Canal République', tone:'institutionnel', icon:'📺' },
+  { name:'La Tribune du Soir', tone:'analytique', icon:'📰' },
+  { name:'Radio Citoyenne', tone:'terrain', icon:'🎙️' },
+  { name:'Info 24', tone:'réactif', icon:'⚡' }
+];
+
+const ACHIEVEMENTS = [
+  { id:'first-action', label:'Premiers pas', desc:'Effectuer ta première action.' },
+  { id:'debate', label:'Sous les projecteurs', desc:'Participer à un débat.' },
+  { id:'funds', label:'Campagne solide', desc:'Passer au-dessus de 80 000 €.' },
+  { id:'momentum', label:'Élan national', desc:'Atteindre 70 de momentum.' },
+  { id:'media', label:'Une nationale', desc:'Déclencher un gros titre média.' },
+  { id:'alliance', label:'Négociateur', desc:'Conclure un accord d’entre-deux-tours.' },
+  { id:'variety', label:'Campagne complète', desc:'Utiliser 5 actions différentes.' },
+  { id:'consistency', label:'Semaine maîtrisée', desc:'Terminer une semaine avec 1 action restante.' }
+];
+
+const WEEK_GOALS = [
+  { key:'actions', label:'Mener 2 actions différentes', target:2, test:s=>new Set(s.weekActions||[]).size },
+  { key:'credibility', label:'Gagner 2 crédibilité', target:2, test:s=>Math.max(0, s.stats.credibility - s.weekStart.credibility) },
+  { key:'popularity', label:'Gagner 2 popularité', target:2, test:s=>Math.max(0, s.stats.popularity - s.weekStart.popularity) },
+  { key:'mobilization', label:'Gagner 4 mobilisation', target:4, test:s=>Math.max(0, s.stats.mobilization - s.weekStart.mobilization) },
+  { key:'funds', label:'Gagner 5 000 €', target:5000, test:s=>Math.max(0, s.stats.funds - s.weekStart.funds) }
+];
+
+function normalizeState(s) {
+  if (!s) return s;
+  s.party = s.party || {};
+  s.party.slogan = s.party.slogan || 'Ensemble, pour le pays.';
+  s.momentum = Number.isFinite(s.momentum) ? s.momentum : 45;
+  s.teamMorale = Number.isFinite(s.teamMorale) ? s.teamMorale : 65;
+  s.weekActions = Array.isArray(s.weekActions) ? s.weekActions : [];
+  s.weekActionTypes = Array.isArray(s.weekActionTypes) ? s.weekActionTypes : Array.from(new Set(s.weekActions));
+  s.featuredActions = Array.isArray(s.featuredActions) ? s.featuredActions : [];
+  s.weeklyGoal = s.weeklyGoal || null;
+  s.achievements = Array.isArray(s.achievements) ? s.achievements : [];
+  s.totalActionTypes = Number.isFinite(s.totalActionTypes) ? s.totalActionTypes : 0;
+  s.mediaFlash = s.mediaFlash || null;
+  s.endorsement = s.endorsement || null;
+  s.lastActionText = s.lastActionText || '';
+  s.allianceStatus = s.allianceStatus || 'pending';
+  s.autoSaveAt = s.autoSaveAt || null;
+  return s;
+}
+
+function pickFeaturedActions() {
+  const pool = ACTIONS.slice().sort(() => Math.random() - 0.5);
+  return pool.slice(0, Math.min(3, pool.length)).map(a => a.id);
+}
+
+function pickWeeklyGoal() {
+  return { ...pick(WEEK_GOALS) };
+}
+
+function unlockAchievement(id, text) {
+  if (!state.achievements.includes(id)) {
+    state.achievements.push(id);
+    if (text) addNews(`🏅 ${text}`, 'good');
+  }
+}
+
+function markAutosave() {
+  state.autoSaveAt = Date.now();
+}
+
+
 const CONFIG = {
   firstRoundWeek: 10,   // le 1er tour a lieu à la fin de cette semaine
   lastWeek: 13,         // le 2nd tour a lieu à la fin de cette semaine
@@ -822,6 +953,7 @@ const STAT_DEFS = [
   { k: 'funds',        icon: '💶', label: 'Finances' },
   { k: 'mobilization', icon: '🔥', label: 'Mobilisation', suffix: '/100' },
   { k: 'credibility',  icon: '⚖️', label: 'Crédibilité',  suffix: '/100' },
+  { k: 'momentum',   icon: '📈', label: 'Momentum', suffix: '/100' },
 ];
 
 /* ---------- Actions du joueur ----------
@@ -1192,19 +1324,31 @@ function newState(setup) {
   return {
     v: 1,
     phase: 'campaign',              // 'campaign' | 'ended'
-    party: { name: setup.name, leader: setup.leader, color: setup.color, theme: setup.theme, style: setup.style },
+    party: { name: setup.name, leader: setup.leader, slogan: setup.slogan || 'Ensemble, pour le pays.', color: setup.color, theme: setup.theme, style: setup.style },
     difficulty: setup.difficulty,
     week: 1,
     round: 1,                       // 1 = premier tour, 2 = second tour
     ap: CONFIG.apPerWeek,
     used: {},                       // actions déjà jouées cette semaine
     stats,
+    momentum: 45,
+    teamMorale: 65,
     weekStart: { ...stats },        // pour afficher les variations de la semaine
     rivals: RIVAL_TEMPLATES.map(r => ({ ...r, target: r.appeal + 4, out: false })),
     history: [],                    // instantanés de sondages
     news: [],
     pendingEvent: null,
     seenEvents: [],
+    weekActions: [],
+    featuredActions: [],
+    weeklyGoal: null,
+    achievements: [],
+    totalActionTypes: 0,
+    mediaFlash: null,
+    endorsement: null,
+    lastActionText: '',
+    allianceStatus: 'pending',
+    autoSaveAt: null,
     introSeen: false,
     results: {},
     ending: null,
@@ -1212,7 +1356,10 @@ function newState(setup) {
 }
 
 function save() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* stockage indisponible */ }
+  try {
+    const snapshot = JSON.parse(JSON.stringify(state));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot));
+  } catch (e) { /* stockage indisponible */ }
 }
 
 function loadSave() {
@@ -1220,7 +1367,8 @@ function loadSave() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw);
-    return s && s.v === 1 && s.party && s.stats ? s : null;
+    if (!s || s.v !== 1 || !s.party || !s.stats) return null;
+    return normalizeState(s);
   } catch (e) { return null; }
 }
 
@@ -1322,6 +1470,18 @@ function doAction(id) {
   state.used[id] = used + 1;
   const applied = applyFx(fx);
 
+  const actionGain = (applied.popularity || 0) * 0.7 + (applied.credibility || 0) * 0.45 + (applied.mobilization || 0) * 0.25;
+  state.momentum = clamp(state.momentum + actionGain * 0.65 - 0.2, 0, 100);
+  state.teamMorale = clamp(state.teamMorale + ((applied.mobilization || 0) > 0 ? 1.5 : -0.5), 0, 100);
+  state.weekActions.push(id);
+  state.totalActionTypes = new Set([...(state.weekActionTypes || []), ...state.weekActions]).size;
+  state.weekActionTypes = Array.from(new Set([...(state.weekActionTypes || []), id]));
+  state.lastActionText = `${a.name} — ${raw.text}`;
+  if (state.weekActions.length === 1) unlockAchievement('first-action', 'Premiers pas : ta campagne est officiellement lancée.');
+  if (state.weekActionTypes.length >= 5) unlockAchievement('variety', 'Campagne complète : 5 types d’actions différents utilisés.');
+  if (state.stats.funds >= 80000) unlockAchievement('funds', 'Campagne solide : tu passes la barre des 80 000 €.');
+  if (state.momentum >= 70) unlockAchievement('momentum', 'Élan national : ton momentum atteint 70.');
+
   const good = (applied.popularity || 0) + (applied.credibility || 0) >= 0;
   addNews(`${a.name} : ${raw.text}`, good ? 'good' : 'bad');
   toast(`${a.icon} ${esc(raw.text)}`, applied);
@@ -1370,9 +1530,18 @@ function resolveEvent(ev, index) {
   const good = (applied.popularity || 0) + (applied.credibility || 0) + (applied.funds || 0) / 5000;
 
   state.pendingEvent = null;
+  state.lastActionText = `${ev.title} : ${out.text}`;
+  if (ev.kind === 'debate') unlockAchievement('debate', 'Sous les projecteurs : tu as participé à un débat.');
+  if (Math.abs(applied.popularity || 0) >= 3 || Math.abs(applied.credibility || 0) >= 3) {
+    state.mediaFlash = { week: state.week, text: out.text };
+    unlockAchievement('media', 'Une nationale : un moment fort alimente les médias.');
+  }
+  state.momentum = clamp(state.momentum + ((applied.popularity || 0) * 0.55) + ((applied.credibility || 0) * 0.35) + ((applied.mobilization || 0) * 0.18), 0, 100);
+  state.teamMorale = clamp(state.teamMorale + ((applied.mobilization || 0) * 0.35), 0, 100);
   addNews(`${ev.title} : ${out.text}`, good > 0.3 ? 'good' : good < -0.3 ? 'bad' : 'muted');
   save();
   render();
+
 
   openModal({
     kicker: ev.kind === 'debate' ? 'Résultat du débat' : 'Résultat',
@@ -1404,11 +1573,19 @@ function moveRivals() {
 }
 
 function rivalAttack() {
-  if (Math.random() > 0.3) return;
+  if (Math.random() > 0.34) return;
   const r = pick(activeRivals());
-  const dmg = rnd(0.8, 2.2) * clamp(1.15 - state.stats.credibility / 150, 0.5, 1.2);
-  state.stats.popularity = clamp(state.stats.popularity - dmg, 0, 100);
-  addNews(`${r.name} (${r.party}) cible ton programme dans la presse : ${signed(-dmg)} popularité.`, 'bad');
+  const dmg = rnd(0.8, 2.4) * clamp(1.15 - state.stats.credibility / 150, 0.5, 1.2);
+  const modes = [
+    { label:'une interview télévisée', fx: dmg },
+    { label:'un tract polémique', fx: dmg * 0.85 },
+    { label:'une conférence de presse', fx: dmg * 1.15 }
+  ];
+  const mode = pick(modes);
+  const loss = mode.fx;
+  state.stats.popularity = clamp(state.stats.popularity - loss, 0, 100);
+  state.momentum = clamp(state.momentum - loss * 0.55, 0, 100);
+  addNews(`${r.name} (${r.party}) t’attaque via ${mode.label} : ${signed(-loss)} popularité.`, 'bad');
 }
 
 function endWeek() {
@@ -1420,6 +1597,13 @@ function endWeek() {
   s.funds -= CONFIG.weeklyCost;
   s.popularity = clamp(s.popularity - (2.2 - s.mobilization / 100), 0, 100);
   s.mobilization = clamp(s.mobilization - 3, 0, 100);
+  const goal = state.weeklyGoal;
+  if (goal) {
+    const achieved = goal.test(state) >= goal.target;
+    addNews(achieved ? `Objectif de la semaine réussi : ${goal.label}.` : `Objectif non atteint : ${goal.label}.`, achieved ? 'good' : 'muted');
+    state.teamMorale = clamp(state.teamMorale + (achieved ? 2 : -1), 0, 100);
+  }
+  state.momentum = clamp(state.momentum - 2.4 + state.teamMorale / 250, 0, 100);
   addNews(`Charges de la semaine : ${money(CONFIG.weeklyCost)} (locaux, équipe, déplacements).`, 'muted');
 
   // Découvert
@@ -1437,6 +1621,14 @@ function endWeek() {
   const now = lastShares().player;
   const diff = now - previous;
   addNews(`Sondage : ${state.party.name} à ${num1(now)} % (${signed(diff)} pt).`, diff > 0.4 ? 'good' : diff < -0.4 ? 'bad' : 'muted');
+  if (Math.abs(diff) >= 0.8) { state.mediaFlash = { week: state.week, text: `${state.party.name} ${diff > 0 ? 'accélère' : 'ralentit'} dans les sondages (${signed(diff)} pt).` }; }
+  if (Math.random() < 0.12 && state.momentum >= 55) {
+    const supporter = pick(['un collectif de maires fictifs','un réseau associatif fictif','des élus locaux indépendants','un mouvement citoyen fictif']);
+    state.endorsement = { week: state.week, text: `${supporter} annonce un soutien public à ${state.party.name}.` };
+    state.stats.popularity = clamp(state.stats.popularity + 2, 0, 100);
+    state.teamMorale = clamp(state.teamMorale + 4, 0, 100);
+    addNews(`🤝 ${state.endorsement.text}`, 'good');
+  }
 
   if (state.round === 1 && state.week === CONFIG.firstRoundWeek) return runFirstRound();
   if (state.round === 2 && state.week === CONFIG.lastWeek) return runSecondRound();
@@ -1451,8 +1643,13 @@ function advanceWeek() {
 function startWeek() {
   state.ap = CONFIG.apPerWeek;
   state.used = {};
+  state.weekActions = [];
   state.weekStart = { ...state.stats };
+  state.featuredActions = pickFeaturedActions();
+  state.weeklyGoal = pickWeeklyGoal();
   state.pendingEvent = chooseEvent();
+  state.mediaFlash = state.mediaFlash && state.mediaFlash.week >= state.week - 1 ? state.mediaFlash : null;
+  state.endorsement = state.endorsement && state.endorsement.week >= state.week - 2 ? state.endorsement : null;
   save();
   render();
   showPendingEvent();
@@ -1544,19 +1741,21 @@ function startRound2(finalists) {
 
   state.round = 2;
   state.finalist = rivalId;
+  state.allianceStatus = 'pending';
   pushPoll();
   addNews(`Second tour : ${state.party.name} contre ${rival.party}. Les voix des candidatures éliminées se répartissent.`, 'muted');
 
   openModal({
     kicker: 'Entre-deux-tours',
     title: `Toi contre ${rival.name}`,
-    body: `<p>Les électeurs des candidatures éliminées choisissent leur camp.</p>
-      <div class="chips">
-        <span class="chip pos">${signed(gainPlayer)} popularité pour toi</span>
-        <span class="chip neg">${signed(gainRival)} pour ${esc(rival.party)}</span>
-      </div>
-      <p class="muted">Plus ta crédibilité et ta mobilisation sont hautes, plus le report de voix te profite.</p>`,
-    actions: [{ label: 'Entrer dans la dernière ligne droite', primary: true, onClick: () => { closeModal(); advanceWeek(); } }],
+    body: `<p>Les équipes des candidatures éliminées veulent connaître tes garanties avant de conseiller leurs électeurs.</p>
+      <div class="chips"><span class="chip pos">${signed(gainPlayer)} popularité pour toi</span><span class="chip neg">${signed(gainRival)} pour ${esc(rival.party)}</span></div>
+      <p class="muted">Tu peux négocier un accord de campagne fictif avant la dernière ligne droite.</p>`,
+    choices: [
+      { label:'Proposer un accord programmatique', hint:'+ crédibilité, report de voix modéré.', onClick:()=>{ state.allianceStatus='Accord programmatique'; state.stats.credibility=clamp(state.stats.credibility+3,0,100); state.stats.popularity=clamp(state.stats.popularity+2,0,100); state.momentum=clamp(state.momentum+4,0,100); unlockAchievement('alliance','Négociateur : accord programmatique conclu.'); save(); closeModal(); advanceWeek(); } },
+      { label:'Proposer des garanties locales', hint:'+ mobilisation, coût financier.', onClick:()=>{ state.allianceStatus='Garanties locales'; state.stats.mobilization=clamp(state.stats.mobilization+5,0,100); state.stats.funds-=3500; state.momentum=clamp(state.momentum+3,0,100); unlockAchievement('alliance','Négociateur : garanties locales conclues.'); save(); closeModal(); advanceWeek(); } },
+      { label:'Ne rien négocier', hint:'Tu gardes une ligne parfaitement indépendante.', onClick:()=>{ state.allianceStatus='Aucun accord'; state.stats.credibility=clamp(state.stats.credibility+1,0,100); save(); closeModal(); advanceWeek(); } }
+    ]
   });
 }
 
@@ -1587,9 +1786,32 @@ function finish(type) {
 
 /* ---------- Écrans ---------- */
 
+let screenTransitionTimer = null;
 function showScreen(name) {
-  ['setup', 'game', 'end'].forEach(n => { $('#screen-' + n).hidden = n !== name; });
-  window.scrollTo(0, 0);
+  const screens = ['setup', 'game', 'end'].map(n => $('#screen-' + n)).filter(Boolean);
+  const target = $('#screen-' + name);
+  if (!target) return;
+
+  if (screenTransitionTimer) clearTimeout(screenTransitionTimer);
+  screens.forEach(el => {
+    if (el === target) return;
+    if (!el.hidden) {
+      el.classList.remove('screen-visible');
+      el.classList.add('screen-leaving');
+    }
+  });
+
+  target.hidden = false;
+  target.classList.remove('screen-leaving');
+  requestAnimationFrame(() => target.classList.add('screen-visible'));
+
+  screenTransitionTimer = setTimeout(() => {
+    screens.forEach(el => {
+      if (el !== target) { el.hidden = true; el.classList.remove('screen-visible', 'screen-leaving'); }
+    });
+  }, 340);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function applyAccent(color) {
@@ -1649,14 +1871,24 @@ function updateSetupPreview() {
   const fd = new FormData(form);
   const name = (fd.get('party') || '').trim() || 'Mouvement Citoyen';
   const leaderName = (fd.get('leader') || '').trim() || 'Alex Durand';
+  const slogan = (fd.get('slogan') || '').trim() || 'Ensemble, pour le pays.';
   applyAccent(fd.get('color') || PARTY_COLORS[0]);
   $('#preview-name').textContent = name;
-  $('#preview-leader').textContent = `${leaderName} vise la présidence.`;
+  $('#preview-leader').textContent = `${leaderName} vise la présidence. « ${slogan} »`;
+  const join = fd.get('partyMode') === 'join';
+  const list = document.getElementById('party-join-list');
+  if (list) list.classList.toggle('party-join-hidden', !join);
+  const partyInput = document.getElementById('input-party');
+  if (partyInput) partyInput.disabled = join;
+  if (join) {
+    const joined = JOINABLE_PARTIES[Number(fd.get('joinedParty') || 0)];
+    if (joined) applyAccent(joined.color);
+  }
 }
 
 function startNewGame(setup) {
   clearSave();
-  state = newState(setup);
+  state = normalizeState(newState(setup));
   pushPoll();
   addNews(`Lancement de la campagne de ${state.party.name}. Les sondages te placent à ${num1(lastShares().player)} %.`, 'muted');
   save();
@@ -1671,7 +1903,7 @@ function renderPoster() {
   const runoff = state.round === 2;
   $('#poster-tag').textContent = `Semaine ${state.week} sur ${CONFIG.lastWeek}`;
   $('#poster-title').textContent = '🇫🇷 ' + state.party.name;
-  $('#poster-sub').textContent = `${state.party.leader}, thème : ${theme.label}`;
+  $('#poster-sub').textContent = `${state.party.leader}, thème : ${theme.label} • « ${state.party.slogan} »`;
 
   const target = runoff ? CONFIG.lastWeek : CONFIG.firstRoundWeek;
   const left = target - state.week;
@@ -1697,12 +1929,13 @@ function renderStats() {
   const s = state.stats;
   const w = state.weekStart;
   $('#stats').innerHTML = STAT_DEFS.map(d => {
-    const v = s[d.k];
-    const delta = v - w[d.k];
+    const v = d.k === 'momentum' ? state.momentum : s[d.k];
+    const base = d.k === 'momentum' ? (state.momentum - 0) : w[d.k];
+    const delta = d.k === 'momentum' ? 0 : v - base;
     const isFunds = d.k === 'funds';
     const pct = isFunds ? clamp(v / 100000 * 100, 0, 100) : v;
     const shown = isFunds ? money(v) : nfInt.format(Math.round(v));
-    const deltaTxt = Math.abs(delta) >= 0.05
+    const deltaTxt = d.k === 'momentum' ? '' : Math.abs(delta) >= 0.05
       ? `<span class="delta ${delta > 0 ? 'pos' : 'neg'}">${isFunds ? signed(delta, false) + ' €' : signed(delta)} cette semaine</span>` : '';
     return `<article class="stat ${isFunds && v < 0 ? 'debt' : ''}">
       <span class="stat-label">${d.icon} ${d.label}</span>
@@ -1719,23 +1952,25 @@ function renderActions() {
   const locked = state.phase !== 'campaign' || !!state.pendingEvent;
   const cards = ACTIONS.map(a => {
     const used = state.used[a.id] || 0;
+    const featured = state.featuredActions.includes(a.id);
+    const streak = state.weekActions.length && state.weekActions[state.weekActions.length - 1] === a.id ? '<em class="streak-badge">Enchaînement</em>' : '';
     let reason = '';
     if (state.ap < a.ap) reason = 'Plus assez de points d’action';
     else if (state.stats.funds < a.cost) reason = 'Fonds insuffisants';
     const penalty = used ? `<em class="warn">Rendement −${Math.round((1 - Math.pow(0.7, used)) * 100)} % (déjà fait)</em>` : '';
-    return `<button type="button" class="action" data-action="${a.id}" ${locked || reason ? 'disabled' : ''}>
+    return `<button type="button" class="action ${featured ? 'featured' : ''}" data-action="${a.id}" ${locked || reason ? 'disabled' : ''}>
       <span class="a-ico" aria-hidden="true">${a.icon}</span>
       <span class="a-body">
         <strong>${a.name}</strong>
         <span class="a-desc">${a.desc}</span>
-        <span class="a-meta"><em>${a.ap} point${a.ap > 1 ? 's' : ''}</em><em>${a.cost ? money(a.cost) : 'Gratuit'}</em>${penalty}</span>
+        <span class="a-meta">${streak}<em>${a.ap} point${a.ap > 1 ? 's' : ''}</em><em>${a.cost ? money(a.cost) : 'Gratuit'}</em>${penalty}</span>
         ${reason ? `<span class="a-reason">${reason}</span>` : ''}
       </span>
     </button>`;
   }).join('');
   $('#actions').innerHTML = `
     <div class="panel-head"><h2>Actions de la semaine</h2><span class="muted">${state.ap} point${state.ap > 1 ? 's' : ''} restant${state.ap > 1 ? 's' : ''}</span></div>
-    <div class="actions-grid">${cards}</div>`;
+    <div class="status-line">🎯 Objectif : ${esc(state.weeklyGoal?.label || 'Aucun')}</div><div class="actions-grid">${cards}</div>`;
 }
 
 /* ---------- Sondages ---------- */
@@ -1746,10 +1981,11 @@ function renderPolls() {
   const scale = state.round === 1 ? 60 : 100;
   const rows = Object.entries(last.shares).sort((a, b) => b[1] - a[1]).map(([id, v]) => {
     const c = info(id);
+    const threat = id !== 'player' && v >= (last.shares.player || 0) ? ' <small class="badge bad">⚠ menace</small>' : '';
     const d = prev && prev.round === last.round && prev.shares[id] !== undefined ? v - prev.shares[id] : 0;
     const dTxt = Math.abs(d) >= 0.1 ? `<small class="${d > 0 ? 'delta pos' : 'delta neg'}">${signed(d)}</small>` : '';
     return `<li class="poll-row ${id === 'player' ? 'me' : ''}">
-      <span class="poll-name"><i style="background:${c.color}"></i><span>${esc(c.short)}</span></span>
+      <span class="poll-name"><i style="background:${c.color}"></i><span>${esc(c.short)}</span>${threat}</span>
       <span class="poll-bar"><b style="width:${clamp(v / scale * 100, 0, 100)}%;background:${c.color}"></b></span>
       <span class="poll-val">${num1(v)} %${dTxt}</span>
     </li>`;
@@ -1798,11 +2034,41 @@ function renderNews() {
 /* ---------- Barre du bas ---------- */
 
 function renderExtraPresidential(){
- const m=document.getElementById('media-feed');
- const a=document.getElementById('alliance-feed');
- if(m) m.innerHTML=`<div class="media-channel">📺 Canal République : débat sur ton programme</div><div class="media-channel">📰 Le Journal National : analyse de tes déplacements</div><div class="media-channel">🎙️ Radio Citoyenne : interview de la semaine</div>`;
- if(a && state && state.round>=1) a.textContent='Les partis fictifs discutent des reports de voix et des accords de second tour.';
-}
+  const m=document.getElementById('media-feed');
+  const a=document.getElementById('alliance-feed');
+  const b=document.getElementById('weekly-brief');
+  const ach=document.getElementById('achievement-feed');
+  const media = MEDIA_PROFILES.map((p,i)=>{
+    const angle = [
+      `Le rythme de campagne de ${state.party.name} est jugé ${state.momentum >= 60 ? 'soutenu' : 'irrégulier'}.`,
+      `La rédaction se penche sur le slogan « ${state.party.slogan} ».`,
+      `Sur le terrain, la mobilisation de ton équipe est à ${Math.round(state.stats.mobilization)}/100.`,
+      `Les observateurs suivent la dynamique de ${state.party.name}.`
+    ][(state.week + i) % 4];
+    return `<div class="media-card"><b>${p.icon} ${p.name} · ${p.tone}</b><span>${esc(angle)}</span><br><small>Semaine ${state.week}</small></div>`;
+  }).join('');
+  if(m) m.innerHTML=`<div class="media-stack">${media}</div>${state.mediaFlash ? `<p class="flash-headline" style="margin-top:10px">⚡ FLASH : ${esc(state.mediaFlash.text)}</p>` : ''}${state.endorsement ? `<p class="status-line" style="margin-top:8px">🤝 ${esc(state.endorsement.text)}</p>` : ''}`;
+  if(a){
+    if(state.round === 2){
+      if(state.allianceStatus === 'pending') a.innerHTML=`<p>Les équipes des candidatures éliminées sont disponibles pour négocier.</p><div class="brief-badges"><span class="badge accent">Négociation ouverte</span></div>`;
+      else a.innerHTML=`<p>Accord conclu : ${state.allianceStatus}.</p><div class="brief-badges"><span class="badge good">Accord actif</span></div>`;
+    } else a.innerHTML=`<p>Les alliances se négocieront après le premier tour.</p><div class="brief-badges"><span class="badge">🗳️ Premier tour : S${CONFIG.firstRoundWeek}</span></div>`;
+  }
+  if(b){
+    const goal = state.weeklyGoal;
+    const goalProgress = goal ? Math.min(goal.target, goal.test(state)) : 0;
+    const percent = goal ? Math.round(goalProgress / goal.target * 100) : 0;
+    b.innerHTML=`<div class="panel-head"><h2>📋 Briefing — semaine ${state.week}</h2><span class="status-line"><span class="autosave-dot"></span> Sauvegarde active</span></div>
+      <div class="brief-grid">
+        <div class="brief-card"><strong>${esc(state.party.slogan)}</strong><p class="muted">Dernière action : ${esc(state.lastActionText || 'Aucune pour l’instant.')}</p><div class="brief-badges"><span class="badge accent">📈 Momentum ${Math.round(state.momentum)}/100</span><span class="badge">👥 Moral ${Math.round(state.teamMorale)}/100</span>${state.stats.funds < 10000 ? '<span class="badge bad">💶 Trésorerie sous pression</span>' : ''}</div></div>
+        <div class="brief-card"><strong>🎯 Objectif</strong><p>${esc(goal?.label || 'Aucun objectif')}</p><div class="bar"><i style="display:block;width:${percent}%;height:100%;background:var(--accent)"></i></div><small>${percent}%</small></div>
+      </div>`;
+  }
+  if(ach){
+    const unlocked = state.achievements || [];
+    ach.innerHTML = `<div class="achievement-list">${ACHIEVEMENTS.map(x=>`<div class="achievement ${unlocked.includes(x.id)?'':'locked'}"><strong>${unlocked.includes(x.id)?'🏅':'○'} ${esc(x.label)}</strong><small>${esc(x.desc)}</small></div>`).join('')}</div>`;
+  }
+} 
 
 function renderEndbar() {
   const dots = Array.from({ length: CONFIG.apPerWeek }, (_, i) => `<i class="${i < state.ap ? 'on' : ''}"></i>`).join('');
@@ -1842,7 +2108,8 @@ function renderEnd() {
     ['Finances', money(s.funds)], ['Mobilisation', Math.round(s.mobilization) + '/100'], ['Crédibilité', Math.round(s.credibility) + '/100']];
   if (state.results.round1) rows.push(['Score au 1er tour', num1(state.results.round1.player) + ' %']);
   if (state.results.round2) rows.push(['Score au 2nd tour', num1(state.results.round2.player) + ' %']);
-  $('#end-summary').innerHTML = `<h2>Bilan de campagne</h2><dl class="summary">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+  const unlocked = (state.achievements || []).map(id => ACHIEVEMENTS.find(a => a.id === id)?.label).filter(Boolean);
+  $('#end-summary').innerHTML = `<h2>Bilan de campagne</h2><dl class="summary">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl><div class="brief-badges"><span class="badge accent">📈 Momentum final ${Math.round(state.momentum)}/100</span><span class="badge">👥 Moral ${Math.round(state.teamMorale)}/100</span>${unlocked.slice(0,4).map(x=>`<span class="badge good">🏅 ${esc(x)}</span>`).join('')}</div><p class="status-line" style="margin-top:10px">Slogan : « ${esc(state.party.slogan)} »</p>`;
   $('#end-chart').innerHTML = `<h2>Sondages jusqu’au bout</h2><div class="chart">${chartSvg()}</div>`;
 }
 
@@ -1889,8 +2156,10 @@ function showPendingEvent() {
   const ev = getEvent(state.pendingEvent);
   if (!ev) { state.pendingEvent = null; save(); render(); return; }
   const themed = ev.theme && ev.theme === state.party.theme;
+  const category = ev.kind === 'debate' ? 'DÉBAT' : (ev.theme ? 'THÈME' : 'IMPRÉVU');
+  const urgent = (state.round === 1 && state.week >= CONFIG.firstRoundWeek - 1) || (state.round === 2 && state.week >= CONFIG.lastWeek - 1);
   openModal({
-    kicker: ev.kind === 'debate' ? `Semaine ${state.week}, débat` : `Semaine ${state.week}, imprévu`,
+    kicker: `${category} · Semaine ${state.week}${urgent ? ' · 🔥 URGENT' : ''}`,
     title: ev.title,
     body: `<p>${esc(ev.text)}</p>` + (themed ? '<p class="note">C’est ton thème de prédilection : tu joues à domicile.</p>' : ''),
     choices: ev.choices.map((c, i) => ({ label: c.label, hint: c.hint, onClick: () => resolveEvent(ev, i) })),
@@ -1912,7 +2181,9 @@ function showIntro() {
   openModal({
     title: `Bienvenue dans la course, ${state.party.leader}`,
     body: rulesHtml(),
-    actions: [{ label: 'Lancer la campagne', primary: true, onClick: () => { closeModal(); state.introSeen = true; startWeek(); } }],
+    actions: [{ label: 'Lancer la campagne', primary: true, onClick: () => {
+      closeModal(); state.introSeen = true; startWeek();
+    } }],
   });
 }
 
@@ -1920,7 +2191,7 @@ function openMenu() {
   openModal({
     title: 'Menu',
     dismissible: true,
-    body: '<p class="muted">Ta partie est sauvegardée automatiquement dans ce navigateur, après chaque action.</p>',
+    body: `<p class="muted"><span class="autosave-dot"></span> Sauvegarde automatique active.</p><p>Momentum : <b>${Math.round(state.momentum)}/100</b> · Moral : <b>${Math.round(state.teamMorale)}/100</b></p>`,
     actions: [
       { label: 'Règles du jeu', onClick: () => openModal({ title: 'Règles du jeu', dismissible: true, body: rulesHtml(), actions: [{ label: 'Fermer', primary: true, onClick: closeModal }] }) },
       { label: 'Nouvelle partie', onClick: confirmNewGame },
@@ -2006,6 +2277,7 @@ function bindGlobalEvents() {
     startNewGame({
       name: chosenParty,
       leader: (fd.get('leader') || '').trim() || 'Alex Durand',
+      slogan: (fd.get('slogan') || '').trim() || 'Ensemble, pour le pays.',
       color: PARTY_COLORS.includes(fd.get('color')) ? fd.get('color') : PARTY_COLORS[0],
       theme: THEMES.some(t => t.id === fd.get('theme')) ? fd.get('theme') : THEMES[0].id,
       style: STYLES.some(s => s.id === fd.get('style')) ? fd.get('style') : STYLES[0].id,
