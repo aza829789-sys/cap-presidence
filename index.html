@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cap Présidence — le jeu de campagne</title>
+  <meta name="description" content="Fonde ton parti, mène ta campagne semaine après semaine et tente de gagner la présidentielle d’un pays imaginaire. Jeu solo, sans compte, sauvegardé dans ton navigateur.">
+  <meta name="theme-color" content="#101a33">
+  <style>
+/* ============================================================
+   CAP PRÉSIDENCE — style.css
+   Direction : affiche de campagne (aplats, gros titres, traits nets)
+   posée sur un fond de bulletin de vote bleu-gris très clair.
+   L’accent (--accent) est la couleur du parti choisie par le joueur.
+   ============================================================ */
+
+:root {
+  --bg: #eef1f6;
+  --card: #ffffff;
+  --ink: #101a33;
+  --muted: #56607a;
+  --line: #101a33;
+  --soft: #e1e6f0;
+  --accent: #e0507a;
+  --on-accent: #ffffff;
+  --good: #0f7a55;
+  --bad: #c22d3d;
+  --warn: #9a5b00;
+  --focus: #1a5fff;
+  --radius: 12px;
+  --sans: "Avenir Next", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1023;
+    --card: #151c38;
+    --ink: #eef1ff;
+    --muted: #9ea8c8;
+    --line: #4b5789;
+    --soft: #222b4f;
+    --good: #4cc79b;
+    --bad: #ff7f8d;
+    --warn: #f0b95a;
+    --focus: #8fb2ff;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.modal-open { overflow: hidden; }
+
+.screen[hidden] { display: none; }
+
+h1, h2, h3, p { margin: 0; }
+
+button, input { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.noscript { padding: 24px; text-align: center; font-weight: 700; }
+
+.muted { color: var(--muted); }
+
+/* ---------- Affiche (en-tête) ---------- */
+
+.poster {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-bottom: 2px solid var(--line);
+  padding: max(16px, env(safe-area-inset-top)) 18px 18px;
+}
+
+.poster > * { max-width: 1100px; margin-left: auto; margin-right: auto; }
+
+.poster-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.poster-tag { font-size: 0.9rem; font-weight: 600; opacity: 0.92; }
+
+.poster h1 {
+  margin-top: 14px;
+  font-size: clamp(2.1rem, 8.5vw, 4.2rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+.poster-sub { margin-top: 10px; font-size: 1.05rem; font-weight: 500; }
+
+/* ---------- Frise des semaines ---------- */
+
+.timeline { margin-top: 18px; }
+
+.timeline ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.timeline li {
+  flex: 1 1 0;
+  height: 10px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--on-accent) 28%, transparent);
+}
+
+.timeline li.done { background: var(--on-accent); opacity: 0.55; }
+.timeline li.now { background: var(--on-accent); height: 18px; align-self: flex-end; }
+.timeline li.vote { border: 2px solid var(--on-accent); background: transparent; }
+.timeline li.vote.done { background: var(--on-accent); }
+.timeline li.vote.now { background: var(--on-accent); }
+.timeline li.later { opacity: 0.4; }
+
+.timeline p { margin-top: 8px; font-size: 0.92rem; font-weight: 600; }
+
+/* ---------- Boutons ---------- */
+
+.btn {
+  appearance: none;
+  border: 2px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
+.btn:active:not(:disabled) { transform: none; box-shadow: none; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.big { padding: 13px 22px; font-size: 1.05rem; }
+
+.btn.on-accent {
+  background: transparent;
+  color: var(--on-accent);
+  border-color: var(--on-accent);
+  padding: 6px 14px;
+}
+
+.btn.on-accent:hover { box-shadow: 3px 3px 0 var(--on-accent); }
+
+/* ---------- Création du parti ---------- */
+
+.setup {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 22px 16px 48px;
+  display: grid;
+  gap: 22px;
+}
+
+.field { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+
+.field > span, .field > legend { font-weight: 800; font-size: 1.02rem; padding: 0; }
+
+.field input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.field-row { display: grid; gap: 16px; }
+
+.hint { color: var(--muted); font-size: 0.92rem; }
+.center { text-align: center; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.swatch input, .option input { position: absolute; opacity: 0; pointer-events: none; }
+
+.swatch span {
+  display: block;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: var(--c);
+  border: 2px solid var(--line);
+  cursor: pointer;
+}
+
+.swatch input:checked + span { outline: 3px solid var(--ink); outline-offset: 3px; }
+.swatch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.options { display: grid; gap: 10px; grid-template-columns: 1fr; }
+
+.option { position: relative; display: block; cursor: pointer; }
+
+.option > span {
+  display: grid;
+  gap: 2px;
+  height: 100%;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.option strong { font-weight: 800; }
+.option small { color: var(--muted); font-size: 0.9rem; }
+
+.option input:checked + span {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 4px 4px 0 var(--line);
+}
+
+.option input:checked + span small { color: inherit; opacity: 0.92; }
+.option input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- Mise en page de la campagne ---------- */
+
+.layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 14px 120px;
+  display: grid;
+  gap: 14px;
+}
+
+.panel {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 0;
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.panel-head h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; }
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    grid-template-areas:
+      "stats   stats"
+      "actions polls"
+      "actions news";
+    align-items: start;
+  }
+  .stats { grid-area: stats; }
+  .area-actions { grid-area: actions; }
+  .area-polls { grid-area: polls; }
+  .area-news { grid-area: news; }
+}
+
+/* ---------- Indicateurs ---------- */
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+@media (min-width: 700px) {
+  .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.stat {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.stat-label { font-weight: 700; color: var(--muted); font-size: 0.92rem; }
+
+.stat-val { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.stat-val small { font-size: 0.9rem; font-weight: 600; color: var(--muted); margin-left: 3px; letter-spacing: 0; }
+
+.bar { height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width 0.5s ease; }
+
+.stat.debt .stat-val { color: var(--bad); }
+.stat.debt .bar i { background: var(--bad); }
+
+.stat-foot { min-height: 1.2em; font-size: 0.85rem; font-weight: 700; }
+
+.delta.pos, .chip.pos { color: var(--good); }
+.delta.neg, .chip.neg { color: var(--bad); }
+
+/* ---------- Actions ---------- */
+
+.actions-grid { display: grid; gap: 10px; }
+
+@media (min-width: 640px) {
+  .actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.action {
+  appearance: none;
+  text-align: left;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.action:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--line); }
+.action:active:not(:disabled) { transform: none; box-shadow: none; }
+.action:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.a-ico { font-size: 1.6rem; line-height: 1.1; }
+.a-body { display: grid; gap: 3px; min-width: 0; }
+.a-body strong { font-size: 1.02rem; font-weight: 800; }
+.a-desc { color: var(--muted); font-size: 0.9rem; }
+
+.a-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+.a-meta em {
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--soft);
+}
+
+.a-meta em.warn { color: var(--warn); }
+.a-reason { font-size: 0.82rem; font-weight: 700; color: var(--bad); }
+
+/* ---------- Sondages ---------- */
+
+.poll-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+
+.poll-row {
+  display: grid;
+  grid-template-columns: minmax(0, 8.5em) 1fr 4.2em;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.92rem;
+}
+
+.poll-name { display: flex; align-items: center; gap: 7px; font-weight: 600; min-width: 0; }
+.poll-name i { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.poll-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.poll-row.me .poll-name { font-weight: 800; }
+
+.poll-bar { height: 12px; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.poll-bar b { display: block; height: 100%; transition: width 0.5s ease; }
+
+.poll-val { text-align: right; font-weight: 800; }
+.poll-val small { display: block; font-size: 0.72rem; font-weight: 700; line-height: 1; }
+
+.chart svg { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--soft); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-size: 9px; font-family: var(--sans); }
+
+/* ---------- Actualités ---------- */
+
+.news-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+
+.news-list li {
+  display: grid;
+  grid-template-columns: 2.6em 1fr;
+  gap: 8px;
+  padding: 9px 0;
+  border-top: 1px solid var(--soft);
+  font-size: 0.92rem;
+}
+
+.news-list li:first-child { border-top: 0; padding-top: 0; }
+.news-list .wk { font-weight: 800; color: var(--muted); }
+.news-list li.good .wk { color: var(--good); }
+.news-list li.bad .wk { color: var(--bad); }
+.news-list li.muted { color: var(--muted); }
+
+/* ---------- Barre du bas ---------- */
+
+.endbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--card);
+  border-top: 2px solid var(--line);
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+}
+
+.endbar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.ap { display: grid; gap: 4px; font-weight: 800; font-size: 0.92rem; }
+.ap div { display: flex; gap: 5px; }
+
+.ap i {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: transparent;
+}
+
+.ap i.on { background: var(--accent); }
+
+/* ---------- Modales ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  max-height: 92dvh;
+  overflow-y: auto;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 14px;
+  animation: rise 0.22s ease-out;
+}
+
+@keyframes rise {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (min-width: 640px) {
+  .overlay { align-items: center; padding: 20px; }
+  .modal { border-bottom: 2px solid var(--line); border-radius: 18px; box-shadow: 8px 8px 0 var(--line); }
+}
+
+.modal .kicker { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+.modal h2 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.modal-body { display: grid; gap: 10px; }
+.modal-body p { max-width: 62ch; }
+.modal-body .note { font-weight: 700; color: var(--good); }
+
+.rules { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+
+.choices { display: grid; gap: 10px; }
+
+.choice {
+  appearance: none;
+  text-align: left;
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 800;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.choice small { font-weight: 500; color: var(--muted); font-size: 0.9rem; }
+.choice:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--line); }
+
+.modal-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  font-weight: 800;
+  font-size: 0.88rem;
+  padding: 3px 10px;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+}
+
+/* ---------- Résultats de scrutin ---------- */
+
+.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+
+.results li {
+  display: grid;
+  grid-template-columns: 1.4em minmax(0, 9em) 1fr 4em;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.results .rk { font-weight: 800; color: var(--muted); }
+.results .rname { display: flex; align-items: center; gap: 6px; font-weight: 700; min-width: 0; }
+.results .rname i { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.results .rname span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.results .rname em { font-style: normal; font-size: 0.75rem; font-weight: 800; color: var(--good); }
+.results li.me .rname { font-weight: 800; }
+.results .rbar { height: 12px; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.results .rbar b { display: block; height: 100%; }
+.results strong { text-align: right; }
+
+/* ---------- Notifications ---------- */
+
+#toasts {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  max-width: 460px;
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  display: grid;
+  gap: 6px;
+  animation: rise 0.2s ease-out;
+}
+
+.toast .chip { color: inherit; border-width: 1.5px; font-size: 0.8rem; padding: 1px 8px; }
+.toast .chip.pos { color: #7ee3b8; }
+.toast .chip.neg { color: #ff9aa4; }
+
+@media (prefers-color-scheme: dark) {
+  .toast .chip.pos { color: #0f7a55; }
+  .toast .chip.neg { color: #c22d3d; }
+}
+
+/* ---------- Écran final ---------- */
+
+.end-layout { padding-bottom: 48px; }
+.end-layout .panel h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 12px; }
+.end-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.summary div { display: grid; gap: 2px; }
+.summary dt { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+.summary dd { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+
+@media (min-width: 900px) {
+  .end-layout { grid-template-columns: 1fr 1fr; }
+  .end-buttons { grid-column: 1 / -1; }
+}
+
+/* ---------- Mouvement réduit ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ---------- Création du parti : grands écrans ---------- */
+
+@media (min-width: 640px) {
+  .field-row { grid-template-columns: 1fr 1fr; }
+  .options { grid-template-columns: 1fr 1fr; }
+  .options.options-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+</style>
+</head>
+<body>
+
+<noscript>
+  <p class="noscript">Cap Présidence a besoin de JavaScript pour fonctionner. Active-le dans ton navigateur puis recharge la page.</p>
+</noscript>
+
+
+<!-- ============ ÉCRAN 1 : création du parti ============ -->
+<section id="screen-setup" class="screen" hidden>
+  <div class="poster" id="setup-poster">
+    <p class="poster-tag">Élection présidentielle, pays imaginaire</p>
+    <h1 id="preview-name">Mouvement Citoyen</h1>
+    <p class="poster-sub" id="preview-leader">Alex Durand vise la présidence.</p>
+  </div>
+
+  <form id="setup-form" class="setup" autocomplete="off">
+    <div class="field-row">
+      <label class="field">
+        <span>Nom de ton parti</span>
+        <input type="text" name="party" id="input-party" maxlength="30" placeholder="Mouvement Citoyen">
+      </label>
+      <label class="field">
+        <span>Ton nom</span>
+        <input type="text" name="leader" id="input-leader" maxlength="24" placeholder="Alex Durand">
+      </label>
+    </div>
+
+    <fieldset class="field">
+      <legend>Couleur de campagne</legend>
+      <div class="swatches" id="color-picker"></div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Ton thème de prédilection</legend>
+      <p class="hint">Les imprévus qui touchent ce thème te réussissent mieux. Ce choix n’a aucune couleur politique : chaque thème vaut les autres.</p>
+      <div class="options" id="theme-picker"></div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Ton style</legend>
+      <div class="options" id="style-picker"></div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Difficulté</legend>
+      <div class="options options-3" id="difficulty-picker"></div>
+    </fieldset>
+
+    <button type="submit" class="btn primary big">Lancer la campagne</button>
+    <p class="hint center">Les partis et personnages rivaux sont fictifs. Ta partie est sauvegardée automatiquement dans ce navigateur.</p>
+  </form>
+</section>
+
+<!-- ============ ÉCRAN 2 : la campagne ============ -->
+<section id="screen-game" class="screen" hidden>
+  <header class="poster">
+    <div class="poster-top">
+      <p class="poster-tag" id="poster-tag"></p>
+      <button type="button" id="btn-menu" class="btn on-accent">Menu</button>
+    </div>
+    <h1 id="poster-title"></h1>
+    <p class="poster-sub" id="poster-sub"></p>
+    <div id="timeline" class="timeline"></div>
+  </header>
+
+  <main class="layout">
+    <section id="stats" class="stats" aria-label="Indicateurs de campagne"></section>
+    <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
+    <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
+    <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
+  </main>
+
+  <footer class="endbar">
+    <div class="endbar-inner">
+      <div class="ap" id="ap-display"></div>
+      <button type="button" id="btn-endweek" class="btn primary big"></button>
+    </div>
+  </footer>
+</section>
+
+<!-- ============ ÉCRAN 3 : résultat final ============ -->
+<section id="screen-end" class="screen" hidden>
+  <header class="poster" id="end-poster">
+    <p class="poster-tag" id="end-tag"></p>
+    <h1 id="end-title"></h1>
+    <p class="poster-sub" id="end-text"></p>
+  </header>
+  <main class="layout end-layout">
+    <section id="end-summary" class="panel"></section>
+    <section id="end-chart" class="panel"></section>
+    <div class="end-buttons">
+      <button type="button" id="btn-share" class="btn">Copier mon score</button>
+      <button type="button" id="btn-replay" class="btn primary">Rejouer</button>
+    </div>
+  </main>
+</section>
+
+<div id="toasts" aria-live="polite"></div>
+<div id="modal-root"></div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CAP PRÉSIDENCE — script.js
+   1. Données         constantes, actions, événements
+   2. Utilitaires     aléatoire, formats
+   3. État            création, sauvegarde
+   4. Moteur          actions, semaine, sondages, scrutins
+   5. Interface       rendu, fenêtres, notifications
+   6. Démarrage
+   ============================================================ */
+
+
+/* ============================================================
+   1. DONNÉES
+   ============================================================ */
+
+const SAVE_KEY = 'cap-presidence:save:v1';
+
+const CONFIG = {
+  firstRoundWeek: 10,   // le 1er tour a lieu à la fin de cette semaine
+  lastWeek: 13,         // le 2nd tour a lieu à la fin de cette semaine
+  apPerWeek: 3,         // points d’action par semaine
+  weeklyCost: 4000,     // charges fixes hebdomadaires
+  bankruptcyLimit: -25000,
+  difficulties: {
+    decouverte: { label: 'Découverte', funds: 80000, rivalGrowth: 0.25, hint: 'Plus de budget, des rivaux plus mous.' },
+    standard:   { label: 'Standard',   funds: 60000, rivalGrowth: 0.55, hint: 'L’équilibre recommandé.' },
+    expert:     { label: 'Expert',     funds: 45000, rivalGrowth: 0.90, hint: 'Budget serré, rivaux affûtés.' },
+  },
+};
+
+const PARTY_COLORS = ['#e0507a', '#8b5cf6', '#e6b422', '#14b8c8', '#dc3b2f', '#3aa860'];
+
+const THEMES = [
+  { id: 'economie',    label: 'Économie et emploi',       desc: 'Entreprises, salaires, pouvoir d’achat.' },
+  { id: 'ecologie',    label: 'Transition écologique',    desc: 'Énergie, climat, alimentation.' },
+  { id: 'securite',    label: 'Sécurité et justice',      desc: 'Tranquillité publique, tribunaux.' },
+  { id: 'education',   label: 'Éducation et jeunesse',    desc: 'École, formation, premiers emplois.' },
+  { id: 'sante',       label: 'Santé et soins',           desc: 'Hôpitaux, médecins, prévention.' },
+  { id: 'territoires', label: 'Territoires et ruralité',  desc: 'Villages, transports, services publics.' },
+  { id: 'numerique',   label: 'Numérique et innovation',  desc: 'Recherche, start-up, vie privée.' },
+];
+
+const STYLES = [
+  { id: 'rassembleur', label: 'Rassembleur', desc: 'Des militants motivés et un message qui réunit. Mobilisation de départ plus haute.',
+    fx: { mobilization: 12 } },
+  { id: 'tribun',      label: 'Tribun',      desc: 'Un charisme qui passe bien à l’écran, mais moins de nuance. Popularité plus haute, crédibilité plus basse.',
+    fx: { popularity: 4, credibility: -6, mobilization: 4 } },
+  { id: 'expert',      label: 'Expert',      desc: 'Des dossiers solides, moins d’énergie sur le terrain. Crédibilité plus haute, mobilisation plus basse.',
+    fx: { credibility: 14, mobilization: -6 } },
+];
+
+const RIVAL_TEMPLATES = [
+  { id: 'marchand', name: 'Hélène Marchand', party: 'Pacte Civique',         color: '#3b6fd8', appeal: 42 },
+  { id: 'lenoir',   name: 'Victor Lenoir',   party: 'Horizon Commun',        color: '#6b7a90', appeal: 35 },
+  { id: 'castel',   name: 'Inès Castel',     party: 'Alliance du Renouveau', color: '#b0764a', appeal: 29 },
+];
+
+const CITIES = ['Port-Sainte-Aline', 'Haut-Vernay', 'Lacombe-sur-Mer', 'Bréval', 'Saint-Orlan', 'Montcler', 'Val-des-Roches'];
+
+const STAT_DEFS = [
+  { k: 'popularity',   icon: '⭐', label: 'Popularité',   suffix: '/100' },
+  { k: 'funds',        icon: '💶', label: 'Finances' },
+  { k: 'mobilization', icon: '🔥', label: 'Mobilisation', suffix: '/100' },
+  { k: 'credibility',  icon: '⚖️', label: 'Crédibilité',  suffix: '/100' },
+];
+
+/* ---------- Actions du joueur ----------
+   roll(state) renvoie les effets « bruts ». Le moteur applique ensuite
+   les rendements décroissants, la saturation et la mobilisation. */
+const ACTIONS = [
+  { id: 'meeting', icon: '🎤', name: 'Grand meeting', ap: 1, cost: 8000,
+    desc: 'Faire salle comble et galvaniser les militants.',
+    roll: () => ({ popularity: rnd(2.5, 4.5), mobilization: rnd(3, 6), funds: rnd(500, 2500),
+      text: `Salle comble à ${pick(CITIES)} : l’ambiance est électrique.` }) },
+
+  { id: 'door', icon: '🚪', name: 'Porte-à-porte', ap: 1, cost: 1500,
+    desc: 'Envoyer les bénévoles à la rencontre des habitants.',
+    roll: () => ({ popularity: rnd(1, 2.2), mobilization: rnd(5, 8), credibility: rnd(0, 1),
+      text: `Des dizaines de bénévoles sillonnent ${pick(CITIES)} : les échanges sont sincères.` }) },
+
+  { id: 'media', icon: '📺', name: 'Passage médias', ap: 1, cost: 2000,
+    desc: 'Interview télé ou radio. Attention aux faux pas.',
+    roll: s => {
+      const risk = clamp((60 - s.stats.credibility) / 150, 0.05, 0.35);
+      if (Math.random() < risk) {
+        return { popularity: -rnd(1, 3), credibility: -rnd(2, 4),
+          text: 'Un moment de flottement à l’antenne : l’extrait tourne en boucle.' };
+      }
+      return { popularity: rnd(2, 4) + (s.stats.credibility - 50) / 50, credibility: rnd(0.5, 2),
+        text: 'Une intervention claire et remarquée : les rédactions relaient tes propositions.' };
+    } },
+
+  { id: 'fundraise', icon: '💶', name: 'Levée de fonds', ap: 1, cost: 0,
+    desc: 'Dîner de soutien et appel aux dons en ligne.',
+    roll: s => ({
+      funds: rnd(7000, 12000) * (0.6 + s.stats.credibility / 125) * (0.7 + s.stats.mobilization / 200),
+      mobilization: -1,
+      text: 'Donateurs et petits dons répondent présents.' }) },
+
+  { id: 'ads', icon: '📣', name: 'Campagne d’affichage', ap: 1, cost: 12000,
+    desc: 'Visibilité massive, mais budget salé.',
+    roll: () => ({ popularity: rnd(3.5, 6), mobilization: 1, credibility: -0.5,
+      text: 'Ton visage et ton slogan sont partout.' }) },
+
+  { id: 'tour', icon: '🚆', name: 'Tournée régionale', ap: 2, cost: 9000,
+    desc: 'Trois étapes en deux jours. Mobilise fort.',
+    roll: () => ({ popularity: rnd(5, 8), mobilization: rnd(4, 7), credibility: rnd(0, 2),
+      text: `Étapes à ${pick(CITIES)} puis à ${pick(CITIES)} : la presse locale suit.` }) },
+
+  { id: 'experts', icon: '🧠', name: 'Atelier programme', ap: 1, cost: 2500,
+    desc: 'Chiffrer et affiner tes propositions avec des experts.',
+    roll: () => ({ credibility: rnd(4, 7), popularity: rnd(0.5, 1.5),
+      text: 'Ton programme gagne en précision et en cohérence.' }) },
+];
+
+/* ---------- Imprévus ----------
+   Chaque choix a des issues { p, text, fx }. Les probabilités s’additionnent à 1.
+   fx peut contenir : popularity, mobilization, credibility, funds,
+   leader (variation de popularité du rival en tête). */
+const o = (p, text, fx = {}) => ({ p, text, fx });
+
+const EVENTS = [
+  { id: 'presse', title: 'Un entretien exclusif',
+    text: 'Un grand quotidien régional te propose deux pages d’entretien, avec des questions sans filet.',
+    choices: [
+      { label: 'Accepter l’entretien', hint: 'De la notoriété à gagner, un faux pas possible.', outcomes: [
+        o(0.7, 'L’entretien est très lu : ta ligne en sort clarifiée.', { popularity: 4, credibility: 2 }),
+        o(0.3, 'Une réponse hésitante fait la une du site du journal.', { popularity: 1, credibility: -3 })] },
+      { label: 'Décliner, trop d’agenda', hint: 'Aucun risque, aucune visibilité.', outcomes: [
+        o(1, 'Le journal donne la parole à un rival à ta place.', { popularity: -0.5 })] },
+    ] },
+
+  { id: 'donateur', title: 'Un chèque providentiel',
+    text: 'Un homme d’affaires propose 25 000 € pour ta campagne, sans rien demander « pour l’instant ».',
+    choices: [
+      { label: 'Accepter le don', hint: '+25 000 €, mais gare aux questions.', outcomes: [
+        o(0.65, 'Le don passe inaperçu et regarnit tes caisses.', { funds: 25000 }),
+        o(0.35, 'La presse s’interroge sur ce donateur : polémique.', { funds: 25000, credibility: -8, popularity: -3 })] },
+      { label: 'Refuser poliment', hint: 'Crédibilité en hausse.', outcomes: [
+        o(1, 'Ton refus est salué pour sa transparence.', { credibility: 4, popularity: 0.5 })] },
+    ] },
+
+  { id: 'phrase', title: 'Une phrase hors contexte',
+    text: 'Un extrait de ton dernier discours, coupé au mauvais endroit, circule sur les réseaux sociaux.',
+    choices: [
+      { label: 'T’expliquer publiquement', hint: 'Sobre, mais ça peut rallumer le feu.', outcomes: [
+        o(0.6, 'Ta mise au point est bien reçue : l’incident se dégonfle.', { credibility: 2, popularity: -0.5 }),
+        o(0.4, 'Tes explications relancent la polémique.', { popularity: -3, credibility: -3 })] },
+      { label: 'Ne rien dire', hint: 'Parfois, ça passe tout seul.', outcomes: [
+        o(0.5, 'Le sujet est oublié en deux jours.'),
+        o(0.5, 'Le silence est vu comme un aveu : l’extrait continue de circuler.', { popularity: -4, credibility: -2 })] },
+      { label: 'Répondre par l’humour', hint: 'Payant si ça fait sourire.', outcomes: [
+        o(0.5, 'Ta réponse amuse : tes militants la partagent partout.', { popularity: 2, mobilization: 3 }),
+        o(0.5, 'La blague tombe à plat et agace.', { popularity: -3 })] },
+    ] },
+
+  { id: 'greve', title: 'Grève des transports',
+    text: 'Le jour de ton meeting, les trains sont à l’arrêt. La salle risque de sonner creux.',
+    choices: [
+      { label: 'Affréter des cars (−4 000 €)', hint: 'Coûteux, mais la salle se remplit.', outcomes: [
+        o(1, 'Les cars arrivent pleins : le meeting est un succès.', { funds: -4000, mobilization: 3, popularity: 1 })] },
+      { label: 'Reporter le meeting', hint: 'Sans frais, mais tes troupes se lassent.', outcomes: [
+        o(1, 'Le report déçoit ceux qui s’étaient organisés.', { mobilization: -3 })] },
+      { label: 'Passer en direct sur internet', hint: 'Audience plus large, moins d’ambiance.', outcomes: [
+        o(1, 'Des milliers de personnes suivent le direct depuis chez elles.', { popularity: 1, mobilization: 2 })] },
+    ] },
+
+  { id: 'influenceur', title: 'Un influenceur te tend la main',
+    text: 'Un créateur de contenu suivi par des centaines de milliers de personnes propose de relayer ta campagne.',
+    choices: [
+      { label: 'Accepter la collaboration', hint: 'Public jeune, image à surveiller.', outcomes: [
+        o(0.65, 'La vidéo cartonne et amène de nouveaux sympathisants.', { popularity: 4, mobilization: 3 }),
+        o(0.35, 'On te reproche de courir après les clics.', { popularity: 1, credibility: -4 })] },
+      { label: 'Décliner', hint: 'Tu restes sur des canaux classiques.', outcomes: [
+        o(1, 'Ton refus passe inaperçu, mais la vague te file sous le nez.', { credibility: 1 })] },
+    ] },
+
+  { id: 'benevoles', title: 'Des bénévoles impatients',
+    text: 'Une équipe de bénévoles veut coller des affiches et distribuer des tracts toute la nuit dans quatre villes.',
+    choices: [
+      { label: 'Les encourager', hint: 'Énergie maximale, dérapages possibles.', outcomes: [
+        o(0.8, 'La ville s’est réveillée à tes couleurs.', { mobilization: 6, popularity: 1, funds: -800 }),
+        o(0.2, 'Quelques affiches collées n’importe où : la mairie s’en plaint.', { mobilization: 4, popularity: -1, funds: -800 })] },
+      { label: 'Cadrer l’action', hint: 'Plus sage, un peu moins d’élan.', outcomes: [
+        o(1, 'L’opération est propre et bien organisée.', { mobilization: 3, credibility: 1 })] },
+    ] },
+
+  { id: 'factcheck', title: 'Un chiffre contesté',
+    text: 'Une rédaction vérifie l’un des chiffres clés de ton programme et le juge approximatif.',
+    choices: [
+      { label: 'Reconnaître l’imprécision', hint: 'Franc, mais ça pique un peu.', outcomes: [
+        o(1, 'Ta franchise est remarquée et l’affaire retombe.', { credibility: 3, popularity: -1 })] },
+      { label: 'Défendre ton chiffre', hint: 'Tout ou rien.', outcomes: [
+        o(0.5, 'Ton argumentaire tient la route : la rédaction nuance.', { popularity: 2, credibility: 1 }),
+        o(0.5, 'Un expert démonte ton calcul en direct.', { popularity: -4, credibility: -6 })] },
+      { label: 'Publier une note détaillée (−1 500 €)', hint: 'Coûteux, mais rassurant.', outcomes: [
+        o(1, 'Ta note technique est saluée par les spécialistes.', { funds: -1500, credibility: 4 })] },
+    ] },
+
+  { id: 'attaque', title: 'Un rival te tire dessus',
+    text: 'Lors d’une interview, l’une des candidatures rivales te juge sans assez d’expérience pour gouverner.',
+    choices: [
+      { label: 'Répondre par un projet précis', hint: 'Solide, sans éclat.', outcomes: [
+        o(1, 'Tu déroules ton plan point par point : l’attaque tombe à l’eau.', { credibility: 3, popularity: 1 })] },
+      { label: 'Ignorer', hint: 'Au risque de laisser dire.', outcomes: [
+        o(1, 'Le reproche s’installe dans le débat public.', { popularity: -1.5, mobilization: -1 })] },
+      { label: 'Retourner l’attaque', hint: 'Coup double ou boomerang.', outcomes: [
+        o(0.45, 'Ta contre-attaque fait mouche et met ton rival en difficulté.', { popularity: 3, leader: -2 }),
+        o(0.55, 'Ton ton agressif est très commenté : le retour de flamme est rude.', { popularity: -2, credibility: -3 })] },
+    ] },
+
+  { id: 'imprimeur', title: 'La facture de l’imprimeur',
+    text: 'L’imprimeur de tes affiches double sa facture au dernier moment, invoquant le prix du papier.',
+    choices: [
+      { label: 'Payer sans discuter (−6 000 €)', hint: 'Rapide, mais cher.', outcomes: [
+        o(1, 'Les affiches sont livrées à temps.', { funds: -6000 })] },
+      { label: 'Renégocier', hint: 'Peut faire économiser, ou coûter plus.', outcomes: [
+        o(0.5, 'L’imprimeur cède et ramène la facture à 2 500 €.', { funds: -2500 }),
+        o(0.5, 'Les négociations traînent : livraison en retard et facture à 7 500 €.', { funds: -7500, mobilization: -2 })] },
+      { label: 'Passer au tout numérique (−1 500 €)', hint: 'Économique, moins visible.', outcomes: [
+        o(1, 'Ta campagne se déplace sur les écrans.', { funds: -1500, popularity: -1 })] },
+    ] },
+
+  { id: 'ralliement', title: 'Un élu veut te rejoindre', when: s => s.round === 1,
+    text: 'Un ancien élu d’un autre camp propose publiquement de te rejoindre. Il a un vrai réseau local.',
+    choices: [
+      { label: 'Accueillir le ralliement', hint: 'Du renfort, mais gare à l’image.', outcomes: [
+        o(0.6, 'Son réseau ouvre des portes et fait basculer des indécis.', { popularity: 4, mobilization: 2 }),
+        o(0.4, 'On te reproche d’accueillir un opportuniste.', { popularity: 2, credibility: -5 })] },
+      { label: 'Rester sur ta ligne', hint: 'Cohérent, mais sans renfort.', outcomes: [
+        o(1, 'Ton refus est vu comme un signe de constance.', { credibility: 3 })] },
+    ] },
+
+  { id: 'sondage', title: 'Un sondage flatteur',
+    text: 'Un institut peu connu publie un sondage très favorable à ton mouvement.',
+    choices: [
+      { label: 'Commenter avec modestie', hint: 'Tu gardes la tête froide.', outcomes: [
+        o(1, 'Ta retenue est appréciée par la presse.', { credibility: 2, popularity: 1 })] },
+      { label: 'Surfer sur la vague', hint: 'Effet d’entraînement, ou méfiance.', outcomes: [
+        o(0.6, 'La dynamique s’auto-entretient : les ralliements se multiplient.', { popularity: 3, mobilization: 4 }),
+        o(0.4, 'Un journaliste rappelle que cet institut est peu fiable.', { credibility: -4, mobilization: 2 })] },
+    ] },
+
+  { id: 'inondations', title: 'Inondations dans une commune voisine',
+    text: 'Une commune proche est sous l’eau. On t’attend sur un plateau télé le soir même.',
+    choices: [
+      { label: 'Suspendre la campagne deux jours', hint: 'Solidarité visible, agenda décalé.', outcomes: [
+        o(1, 'Tu aides à déblayer aux côtés des habitants : le geste est remarqué.', { credibility: 5, mobilization: 2, popularity: 1, funds: -1500 })] },
+      { label: 'Y passer quelques heures', hint: 'Compromis, risque de « récupération ».', outcomes: [
+        o(0.6, 'Ta visite discrète est appréciée.', { credibility: 3, popularity: 2 }),
+        o(0.4, 'On t’accuse de récupération politique.', { credibility: -4, popularity: -2 })] },
+      { label: 'Envoyer un message de soutien', hint: 'Sobre et sans risque.', outcomes: [
+        o(1, 'Ton message est poli, sans plus.', { credibility: 0.5 })] },
+    ] },
+
+  { id: 'podcast', title: 'Un podcast très suivi',
+    text: 'Un podcast d’entretiens de 90 minutes, très écouté, t’invite. Aucun montage, aucune relecture.',
+    choices: [
+      { label: 'Y aller', hint: 'Plus sûr si ta crédibilité est solide.', outcomes: s => {
+        const p = clamp(0.4 + (s.stats.credibility - 40) / 120, 0.25, 0.8);
+        return [
+          o(p, 'Long et détendu, l’entretien te montre sous un jour attachant.', { popularity: 5, credibility: 2 }),
+          o(1 - p, 'Une longue digression sur ton programme fait bâiller les auditeurs.', { popularity: -2, credibility: -3 })];
+      } },
+      { label: 'Refuser', hint: 'Pas de risque, pas de visibilité.', outcomes: [
+        o(1, 'Tu laisses la place à un autre invité.') ] },
+    ] },
+
+  { id: 'cyber', title: 'Le site de campagne est attaqué',
+    text: 'Le site est saturé de requêtes et les dons en ligne sont suspendus. Il faut réagir vite.',
+    choices: [
+      { label: 'Appeler une société de sécurité (−5 000 €)', hint: 'Efficace, mais coûteux.', outcomes: [
+        o(1, 'Le site est rétabli en quelques heures.', { funds: -5000, credibility: 1 })] },
+      { label: 'Réparer avec les bénévoles', hint: 'Gratuit, mais risqué.', outcomes: [
+        o(0.5, 'Tes bénévoles rétablissent le site en une nuit : belle cohésion.', { mobilization: 3 }),
+        o(0.5, 'Des données de sympathisants fuitent avant la réparation.', { credibility: -5, popularity: -2, funds: -2000 })] },
+    ] },
+
+  { id: 'alliance', title: 'Un petit parti propose une alliance', when: s => s.round === 1,
+    text: 'Un petit mouvement, discret mais actif, te propose une alliance de campagne en échange de visibilité.',
+    choices: [
+      { label: 'Accepter l’alliance', hint: 'Plus de moyens, un peu moins de clarté.', outcomes: [
+        o(1, 'Leurs militants renforcent tes équipes et apportent un petit budget.', { popularity: 3, funds: 5000, mobilization: 3, credibility: -2 })] },
+      { label: 'Garder ton indépendance', hint: 'Ta ligne reste nette.', outcomes: [
+        o(1, 'Ton message garde toute sa clarté.', { credibility: 2 })] },
+    ] },
+
+  { id: 'orage', title: 'Orage annoncé',
+    text: 'Un grand rassemblement en plein air est prévu ce week-end. La météo annonce un orage.',
+    choices: [
+      { label: 'Louer une salle (−5 000 €)', hint: 'Sûr, mais moins spectaculaire.', outcomes: [
+        o(1, 'La salle est pleine et l’ambiance chaleureuse.', { funds: -5000, mobilization: 1 })] },
+      { label: 'Maintenir en plein air', hint: 'Image forte ou fiasco.', outcomes: [
+        o(0.5, 'Sous la pluie, la foule reste : l’image fait le tour du pays.', { popularity: 3, mobilization: 5 }),
+        o(0.5, 'L’orage disperse le public et transforme l’événement en fiasco.', { popularity: -2, mobilization: -4 })] },
+      { label: 'Annuler', hint: 'Prudent, décevant.', outcomes: [
+        o(1, 'Tes militants regrettent l’occasion manquée.', { mobilization: -3 })] },
+    ] },
+
+  { id: 'video', title: 'Une vidéo devient virale',
+    text: 'Une jeune militante explique ton programme en deux minutes ; la vidéo dépasse le million de vues.',
+    choices: [
+      { label: 'L’inviter à ton prochain meeting', hint: 'Le coup de projecteur est mérité.', outcomes: [
+        o(1, 'Sa présence sur scène galvanise la salle.', { popularity: 3, mobilization: 4 })] },
+      { label: 'Laisser la vidéo vivre sa vie', hint: 'Spontané, moins exploité.', outcomes: [
+        o(1, 'La vidéo continue de circuler tranquillement.', { popularity: 1.5, mobilization: 1 })] },
+    ] },
+
+  { id: 'dispute', title: 'Zizanie dans l’équipe',
+    text: 'Deux responsables de ta campagne se disputent la stratégie, et l’un d’eux l’a dit à un journaliste.',
+    choices: [
+      { label: 'Trancher fermement', hint: 'Autorité, mais des vexés.', outcomes: [
+        o(0.6, 'Ta décision remet de l’ordre dans la maison.', { credibility: 2, mobilization: -2 }),
+        o(0.4, 'Un des deux claque la porte, et le fait savoir.', { mobilization: -6, popularity: -1 })] },
+      { label: 'Réunir une cellule de crise (−1 500 €)', hint: 'Long, mais apaisant.', outcomes: [
+        o(1, 'Une nuit de discussions plus tard, l’équipe est de nouveau soudée.', { funds: -1500, credibility: 1, mobilization: 2 })] },
+      { label: 'Laisser passer l’orage', hint: 'Il peut se dissiper tout seul.', outcomes: [
+        o(0.5, 'L’affaire s’éteint d’elle-même.'),
+        o(0.5, 'Le désaccord s’étale dans la presse.', { popularity: -2, credibility: -3 })] },
+    ] },
+];
+
+/* Un imprévu par thème : il rapporte plus quand c’est ton thème. */
+const THEME_EVENT_TEXT = {
+  economie:    ['Table ronde sur l’emploi', 'Des chefs d’entreprise et des syndicats t’invitent à débattre de l’emploi et du pouvoir d’achat.'],
+  ecologie:    ['Forum sur la transition', 'Un collectif d’associations organise un forum sur l’énergie et le climat et attend ta feuille de route.'],
+  securite:    ['Rencontre avec les acteurs de terrain', 'Magistrats, policiers et élus locaux t’invitent à parler de sécurité du quotidien et de justice.'],
+  education:   ['Assemblée des enseignants et des parents', 'Une grande fédération de parents et d’enseignants t’invite à présenter tes idées pour l’école.'],
+  sante:       ['États généraux de la santé', 'Soignants et patients réclament des engagements concrets sur l’accès aux soins.'],
+  territoires: ['Congrès des maires ruraux', 'Des maires de petites communes veulent savoir ce que tu proposes pour les territoires.'],
+  numerique:   ['Salon de l’innovation', 'Chercheurs, start-up et associations du numérique t’invitent à exposer ta vision.'],
+};
+
+EVENTS.push(...Object.entries(THEME_EVENT_TEXT).map(([theme, [title, text]]) => ({
+  id: 'theme-' + theme, theme, weight: 0.5, title, text,
+  choices: [
+    { label: 'Présenter un programme détaillé', hint: 'Plus convaincant sur ton thème de prédilection.', outcomes: s => {
+      const p = clamp(0.55 + (s.party.theme === theme ? 0.2 : 0) + (s.stats.credibility - 50) / 300, 0.3, 0.9);
+      return [
+        o(p, 'Ton intervention est applaudie : le public repart convaincu.', { popularity: 2.5, credibility: 3 }),
+        o(1 - p, 'Le public reste sur sa faim : ton propos manque de précision.', { credibility: -1 })];
+    } },
+    { label: 'Envoyer un porte-parole', hint: 'Tu gagnes du temps, sans éclat.', outcomes: [
+      o(1, 'Ton porte-parole fait le travail, sans plus.', { mobilization: 1 })] },
+  ],
+})));
+
+/* ---------- Débats (dates fixes) ---------- */
+function makeDebate(id, title, text) {
+  return { id, kind: 'debate', title, text, choices: [
+    { label: 'Passer à l’offensive', hint: 'Coup d’éclat possible, revers aussi.', outcomes: s => {
+      const p = clamp(0.35 + (s.stats.credibility - 40) / 200 + s.stats.popularity / 400, 0.2, 0.7);
+      return [
+        o(p, 'Ton attaque fait mouche : les commentateurs te donnent l’avantage.', { popularity: 6, credibility: 1, leader: -3 }),
+        o(1 - p, 'L’attaque se retourne contre toi : ton ton crispé est très commenté.', { popularity: -3, credibility: -4 })];
+    } },
+    { label: 'Défendre le fond de ton programme', hint: 'Solide, gain régulier.', outcomes: s => {
+      const p = clamp(0.55 + (s.stats.credibility - 50) / 150, 0.3, 0.85);
+      return [
+        o(p, 'Précis et calme, tu marques des points auprès des indécis.', { popularity: 3.5, credibility: 3 }),
+        o(1 - p, 'Trop technique : une partie du public décroche.', { popularity: 0.5, credibility: 1 })];
+    } },
+    { label: 'Miser sur l’humain et l’émotion', hint: 'Dépend de ta mobilisation.', outcomes: s => {
+      const p = clamp(0.3 + s.stats.mobilization / 150, 0.25, 0.8);
+      return [
+        o(p, 'Une séquence sincère devient virale : tes militants exultent.', { popularity: 4, mobilization: 6 }),
+        o(1 - p, 'La séquence tombe à plat et prête à sourire.', { popularity: -1, mobilization: -2 })];
+    } },
+  ] };
+}
+
+const DEBATES = {
+  4:  makeDebate('debat-regional', 'Débat régional',
+        'Une chaîne régionale réunit les quatre candidatures pour un premier débat. Tu as quelques minutes pour marquer les esprits.'),
+  9:  makeDebate('debat-national', 'Grand débat avant le premier tour',
+        'Le grand débat télévisé à quatre, à quelques jours du scrutin. Les indécis regardent.'),
+  12: makeDebate('debat-final', 'Face-à-face de l’entre-deux-tours',
+        'Un seul duel, des millions de téléspectateurs. Chaque mot compte.'),
+};
+
+function getEvent(id) {
+  return EVENTS.find(e => e.id === id) || Object.values(DEBATES).find(e => e.id === id) || null;
+}
+
+
+/* ============================================================
+   2. UTILITAIRES
+   ============================================================ */
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const esc = s => String(s).replace(/[&<>"']/g, c => ESC_MAP[c]);
+
+const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+const nfDec = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const money = n => nfInt.format(Math.round(n)) + ' €';
+const num1 = n => nfDec.format(n);
+
+/* +3,2 / −1,5 (décimales) ou +4 200 (entiers). */
+function signed(n, decimals = true) {
+  const sign = n > 0 ? '+' : n < 0 ? '−' : '';
+  return sign + (decimals ? nfDec.format(Math.abs(n)) : nfInt.format(Math.abs(Math.round(n))));
+}
+
+/* Texte lisible (blanc ou encre) sur une couleur donnée. */
+function readableOn(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+  return lum > 165 ? '#101a33' : '#ffffff';
+}
+
+
+/* ============================================================
+   3. ÉTAT ET SAUVEGARDE
+   ============================================================ */
+
+let state = null;
+
+function newState(setup) {
+  const diff = CONFIG.difficulties[setup.difficulty];
+  const style = STYLES.find(s => s.id === setup.style);
+  const stats = {
+    popularity:   clamp(14 + (style.fx.popularity || 0), 0, 100),
+    mobilization: clamp(20 + (style.fx.mobilization || 0), 0, 100),
+    credibility:  clamp(45 + (style.fx.credibility || 0), 0, 100),
+    funds: diff.funds,
+  };
+  return {
+    v: 1,
+    phase: 'campaign',              // 'campaign' | 'ended'
+    party: { name: setup.name, leader: setup.leader, color: setup.color, theme: setup.theme, style: setup.style },
+    difficulty: setup.difficulty,
+    week: 1,
+    round: 1,                       // 1 = premier tour, 2 = second tour
+    ap: CONFIG.apPerWeek,
+    used: {},                       // actions déjà jouées cette semaine
+    stats,
+    weekStart: { ...stats },        // pour afficher les variations de la semaine
+    rivals: RIVAL_TEMPLATES.map(r => ({ ...r, target: r.appeal + 4, out: false })),
+    history: [],                    // instantanés de sondages
+    news: [],
+    pendingEvent: null,
+    seenEvents: [],
+    introSeen: false,
+    results: {},
+    ending: null,
+  };
+}
+
+function save() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* stockage indisponible */ }
+}
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    return s && s.v === 1 && s.party && s.stats ? s : null;
+  } catch (e) { return null; }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* rien */ }
+}
+
+
+/* ============================================================
+   4. MOTEUR
+   ============================================================ */
+
+/* ---------- Candidats et sondages ---------- */
+
+function info(id) {
+  if (id === 'player') return { name: state.party.name, short: state.party.name, color: state.party.color };
+  const r = state.rivals.find(x => x.id === id);
+  return { name: r.name, short: r.party, color: r.color };
+}
+
+function activeRivals() { return state.rivals.filter(r => !r.out); }
+
+function leader() {
+  return activeRivals().slice().sort((a, b) => b.appeal - a.appeal)[0];
+}
+
+/* mode 'poll' : petit bruit d’échantillonnage.
+   mode 'vote' : le jour J, la mobilisation du joueur pèse (×0,75 à ×1,25). */
+function computeShares(mode) {
+  const list = [{ id: 'player', appeal: state.stats.popularity }]
+    .concat(activeRivals().map(r => ({ id: r.id, appeal: r.appeal })))
+    .map(c => {
+      let w = Math.max(1, c.appeal);
+      if (mode === 'vote') w *= c.id === 'player' ? 0.75 + state.stats.mobilization / 200 : rnd(0.92, 1.08);
+      else w *= rnd(0.97, 1.03);
+      return { id: c.id, w };
+    });
+  const total = list.reduce((t, c) => t + c.w, 0);
+  const out = {};
+  list.forEach(c => { out[c.id] = Math.round((c.w / total) * 1000) / 10; });
+  return out;
+}
+
+function pushPoll() {
+  state.history.push({ week: state.week, round: state.round, shares: computeShares('poll') });
+}
+
+function lastShares() { return state.history[state.history.length - 1].shares; }
+
+/* ---------- Effets ---------- */
+
+function applyFx(fx) {
+  const st = state.stats;
+  const applied = {};
+  ['popularity', 'mobilization', 'credibility'].forEach(k => {
+    if (fx[k]) {
+      const before = st[k];
+      st[k] = clamp(st[k] + fx[k], 0, 100);
+      applied[k] = st[k] - before;
+    }
+  });
+  if (fx.funds) {
+    st.funds = Math.round(st.funds + fx.funds);
+    applied.funds = Math.round(fx.funds);
+  }
+  if (fx.leader) {
+    const l = leader();
+    if (l) { l.appeal = clamp(l.appeal + fx.leader, 5, 95); applied.leader = fx.leader; }
+  }
+  return applied;
+}
+
+function addNews(text, tone = 'muted') {
+  state.news.unshift({ week: state.week, text, tone });
+  if (state.news.length > 40) state.news.length = 40;
+}
+
+/* ---------- Actions du joueur ---------- */
+
+function doAction(id) {
+  if (!state || state.phase !== 'campaign' || state.pendingEvent) return;
+  const a = ACTIONS.find(x => x.id === id);
+  if (!a || state.ap < a.ap || state.stats.funds < a.cost) return;
+
+  const used = state.used[id] || 0;
+  const raw = a.roll(state);
+
+  const repeat = Math.pow(0.7, used);                                // rendement décroissant dans la semaine
+  const saturation = clamp(1.15 - state.stats.popularity / 100, 0.4, 1.1); // plus dur de progresser en haut
+  const energy = 0.8 + state.stats.mobilization / 250;               // des militants = des actions plus efficaces
+
+  const fx = {};
+  if (raw.popularity)   fx.popularity   = raw.popularity   > 0 ? raw.popularity * repeat * saturation * energy : raw.popularity;
+  if (raw.mobilization) fx.mobilization = raw.mobilization > 0 ? raw.mobilization * repeat : raw.mobilization;
+  if (raw.credibility)  fx.credibility  = raw.credibility  > 0 ? raw.credibility * repeat : raw.credibility;
+  fx.funds = (raw.funds > 0 ? raw.funds * repeat : (raw.funds || 0)) - a.cost;
+
+  state.ap -= a.ap;
+  state.used[id] = used + 1;
+  const applied = applyFx(fx);
+
+  const good = (applied.popularity || 0) + (applied.credibility || 0) >= 0;
+  addNews(`${a.name} : ${raw.text}`, good ? 'good' : 'bad');
+  toast(`${a.icon} ${esc(raw.text)}`, applied);
+  save();
+  render();
+}
+
+/* ---------- Imprévus ---------- */
+
+function chooseEvent() {
+  if (DEBATES[state.week]) return DEBATES[state.week].id;
+  if (state.week !== 1 && Math.random() > 0.8) return null;
+
+  const eligible = () => EVENTS.filter(e => !e.when || e.when(state));
+  let pool = eligible().filter(e => !state.seenEvents.includes(e.id));
+  if (!pool.length) { state.seenEvents = []; pool = eligible(); }
+
+  let r = Math.random() * pool.reduce((t, e) => t + (e.weight || 1), 0);
+  for (const e of pool) {
+    r -= e.weight || 1;
+    if (r <= 0) { state.seenEvents.push(e.id); return e.id; }
+  }
+  const last = pool[pool.length - 1];
+  state.seenEvents.push(last.id);
+  return last.id;
+}
+
+function resolveEvent(ev, index) {
+  const choice = ev.choices[index];
+  const outs = typeof choice.outcomes === 'function' ? choice.outcomes(state) : choice.outcomes;
+
+  let r = Math.random();
+  let out = outs[outs.length - 1];
+  for (const c of outs) {
+    if (r < c.p) { out = c; break; }
+    r -= c.p;
+  }
+
+  const fx = { ...out.fx };
+  const themed = !!ev.theme && ev.theme === state.party.theme;
+  if (themed) {
+    fx.popularity = (fx.popularity || 0) + 1.5;
+    fx.credibility = (fx.credibility || 0) + 2;
+  }
+  const applied = applyFx(fx);
+  const good = (applied.popularity || 0) + (applied.credibility || 0) + (applied.funds || 0) / 5000;
+
+  state.pendingEvent = null;
+  addNews(`${ev.title} : ${out.text}`, good > 0.3 ? 'good' : good < -0.3 ? 'bad' : 'muted');
+  save();
+  render();
+
+  openModal({
+    kicker: ev.kind === 'debate' ? 'Résultat du débat' : 'Résultat',
+    title: ev.title,
+    body: `<p>${esc(out.text)}</p>`
+      + (themed ? '<p class="note">Ton thème de prédilection te donne un bonus : +1,5 popularité, +2 crédibilité.</p>' : '')
+      + `<div class="chips">${chipsHtml(applied)}</div>`,
+    actions: [{ label: 'Continuer', primary: true, onClick: closeModal }],
+  });
+}
+
+/* ---------- Fin de semaine ---------- */
+
+function isElectionWeek() {
+  return (state.round === 1 && state.week === CONFIG.firstRoundWeek)
+      || (state.round === 2 && state.week === CONFIG.lastWeek);
+}
+
+function moveRivals() {
+  const growth = CONFIG.difficulties[state.difficulty].rivalGrowth;
+  activeRivals().forEach(r => {
+    let d = rnd(-2.2, 2.2) + growth + (r.target - r.appeal) * 0.08;
+    if (Math.random() < 0.04) {
+      d -= rnd(5, 9);
+      addNews(`Remous chez ${r.party} : ${r.name} paie une polémique dans les sondages.`, 'good');
+    }
+    r.appeal = clamp(r.appeal + d, 8, 95);
+  });
+}
+
+function rivalAttack() {
+  if (Math.random() > 0.3) return;
+  const r = pick(activeRivals());
+  const dmg = rnd(0.8, 2.2) * clamp(1.15 - state.stats.credibility / 150, 0.5, 1.2);
+  state.stats.popularity = clamp(state.stats.popularity - dmg, 0, 100);
+  addNews(`${r.name} (${r.party}) cible ton programme dans la presse : ${signed(-dmg)} popularité.`, 'bad');
+}
+
+function endWeek() {
+  if (!state || state.phase !== 'campaign' || state.pendingEvent) return;
+  const s = state.stats;
+  const previous = lastShares().player;
+
+  // Charges et érosion
+  s.funds -= CONFIG.weeklyCost;
+  s.popularity = clamp(s.popularity - (2.2 - s.mobilization / 100), 0, 100);
+  s.mobilization = clamp(s.mobilization - 3, 0, 100);
+  addNews(`Charges de la semaine : ${money(CONFIG.weeklyCost)} (locaux, équipe, déplacements).`, 'muted');
+
+  // Découvert
+  if (s.funds < 0) {
+    s.credibility = clamp(s.credibility - 3, 0, 100);
+    s.popularity = clamp(s.popularity - 1.5, 0, 100);
+    addNews('Compte à découvert : les créanciers s’agitent et ta crédibilité en souffre.', 'bad');
+  }
+  if (s.funds < CONFIG.bankruptcyLimit) return finish('bankrupt');
+
+  // Adversaires et sondage
+  moveRivals();
+  rivalAttack();
+  pushPoll();
+  const now = lastShares().player;
+  const diff = now - previous;
+  addNews(`Sondage : ${state.party.name} à ${num1(now)} % (${signed(diff)} pt).`, diff > 0.4 ? 'good' : diff < -0.4 ? 'bad' : 'muted');
+
+  if (state.round === 1 && state.week === CONFIG.firstRoundWeek) return runFirstRound();
+  if (state.round === 2 && state.week === CONFIG.lastWeek) return runSecondRound();
+  advanceWeek();
+}
+
+function advanceWeek() {
+  state.week += 1;
+  startWeek();
+}
+
+function startWeek() {
+  state.ap = CONFIG.apPerWeek;
+  state.used = {};
+  state.weekStart = { ...state.stats };
+  state.pendingEvent = chooseEvent();
+  save();
+  render();
+  showPendingEvent();
+}
+
+/* ---------- Scrutins ---------- */
+
+function runFirstRound() {
+  const shares = computeShares('vote');
+  state.results.round1 = shares;
+  const ranked = Object.entries(shares).sort((a, b) => b[1] - a[1]);
+  const finalists = ranked.slice(0, 2).map(e => e[0]);
+  const inRunoff = finalists.includes('player');
+  const winnerId = ranked[0][1] >= 50 ? ranked[0][0] : null;
+  const turnout = clamp(58 + state.stats.mobilization * 0.12 + rnd(-2, 2), 55, 74);
+
+  let message;
+  let action;
+  if (winnerId === 'player') {
+    message = 'Tu obtiens la majorité absolue dès le premier tour. La partie est gagnée.';
+    action = { label: 'Voir le bilan', primary: true, onClick: () => finish('winFirst') };
+  } else if (winnerId) {
+    message = `${info(winnerId).short} obtient la majorité absolue dès le premier tour. La campagne s’arrête là.`;
+    action = { label: 'Voir le bilan', primary: true, onClick: () => finish('loseFirst') };
+  } else if (inRunoff) {
+    message = 'Ta candidature est qualifiée pour le second tour. Trois semaines pour convaincre les électeurs des candidatures éliminées.';
+    action = { label: 'Préparer le second tour', primary: true, onClick: () => startRound2(finalists) };
+  } else {
+    message = `Tu termines ${ranked.findIndex(e => e[0] === 'player') + 1}e : la course s’arrête ici.`;
+    action = { label: 'Voir le bilan', primary: true, onClick: () => finish('eliminated') };
+  }
+
+  openModal({
+    kicker: `Semaine ${state.week}, soir de scrutin`,
+    title: 'Résultats du premier tour',
+    body: `<p class="muted">Participation : ${num1(turnout)} %</p>${resultsHtml(shares, winnerId ? [] : finalists)}<p>${esc(message)}</p>`,
+    actions: [action],
+  });
+}
+
+/* Report de voix : les électeurs éliminés se répartissent selon ta crédibilité et ta mobilisation. */
+function startRound2(finalists) {
+  const rivalId = finalists.find(id => id !== 'player');
+  const rival = state.rivals.find(r => r.id === rivalId);
+  const eliminated = state.rivals.filter(r => r.id !== rivalId);
+  const pool = eliminated.reduce((t, r) => t + r.appeal, 0);
+  const st = state.stats;
+  const share = clamp(0.3 + (st.credibility - 50) / 150 + (st.mobilization - 50) / 400, 0.15, 0.6);
+  const gainPlayer = pool * share * 0.5;
+  const gainRival = pool * (1 - share) * 0.5;
+
+  st.popularity = clamp(st.popularity + gainPlayer, 0, 100);
+  rival.appeal = clamp(rival.appeal + gainRival, 5, 95);
+  eliminated.forEach(r => { r.out = true; });
+
+  state.round = 2;
+  state.finalist = rivalId;
+  pushPoll();
+  addNews(`Second tour : ${state.party.name} contre ${rival.party}. Les voix des candidatures éliminées se répartissent.`, 'muted');
+
+  openModal({
+    kicker: 'Entre-deux-tours',
+    title: `Toi contre ${rival.name}`,
+    body: `<p>Les électeurs des candidatures éliminées choisissent leur camp.</p>
+      <div class="chips">
+        <span class="chip pos">${signed(gainPlayer)} popularité pour toi</span>
+        <span class="chip neg">${signed(gainRival)} pour ${esc(rival.party)}</span>
+      </div>
+      <p class="muted">Plus ta crédibilité et ta mobilisation sont hautes, plus le report de voix te profite.</p>`,
+    actions: [{ label: 'Entrer dans la dernière ligne droite', primary: true, onClick: () => { closeModal(); advanceWeek(); } }],
+  });
+}
+
+function runSecondRound() {
+  const shares = computeShares('vote');
+  state.results.round2 = shares;
+  const won = shares.player >= 50;
+  openModal({
+    kicker: `Semaine ${state.week}, soir de scrutin`,
+    title: 'Résultats du second tour',
+    body: `${resultsHtml(shares, [])}<p>${won ? 'Tu l’emportes. Le pays a fait son choix.' : 'Le second tour est perdu de peu. Le pays a fait un autre choix.'}</p>`,
+    actions: [{ label: 'Voir le bilan', primary: true, onClick: () => finish(won ? 'win' : 'lose2') }],
+  });
+}
+
+function finish(type) {
+  state.phase = 'ended';
+  state.ending = { type, week: state.week };
+  closeModal();
+  save();
+  render();
+}
+
+
+/* ============================================================
+   5. INTERFACE
+   ============================================================ */
+
+/* ---------- Écrans ---------- */
+
+function showScreen(name) {
+  ['setup', 'game', 'end'].forEach(n => { $('#screen-' + n).hidden = n !== name; });
+  window.scrollTo(0, 0);
+}
+
+function applyAccent(color) {
+  const c = color || '#e0507a';
+  document.documentElement.style.setProperty('--accent', c);
+  document.documentElement.style.setProperty('--on-accent', readableOn(c));
+}
+
+function render() {
+  if (!state) { showSetup(); return; }
+  applyAccent(state.party.color);
+  if (state.phase === 'ended') {
+    renderEnd();
+    showScreen('end');
+    return;
+  }
+  const wasHidden = $('#screen-game').hidden;
+  renderPoster();
+  renderStats();
+  renderActions();
+  renderPolls();
+  renderNews();
+  renderEndbar();
+  if (wasHidden) showScreen('game');
+}
+
+/* ---------- Création du parti ---------- */
+
+function showSetup() {
+  state = null;
+  closeModal();
+  renderSetupPickers();
+  applyAccent(PARTY_COLORS[0]);
+  updateSetupPreview();
+  showScreen('setup');
+}
+
+function renderSetupPickers() {
+  $('#color-picker').innerHTML = PARTY_COLORS.map((c, i) => `
+    <label class="swatch"><input type="radio" name="color" value="${c}" ${i === 0 ? 'checked' : ''} aria-label="Couleur ${i + 1}"><span style="--c:${c}"></span></label>`).join('');
+
+  const option = (name, item, checked) => `
+    <label class="option"><input type="radio" name="${name}" value="${item.id}" ${checked ? 'checked' : ''}>
+      <span><strong>${esc(item.label)}</strong><small>${esc(item.desc || item.hint)}</small></span></label>`;
+
+  $('#theme-picker').innerHTML = THEMES.map((t, i) => option('theme', t, i === 0)).join('');
+  $('#style-picker').innerHTML = STYLES.map((s, i) => option('style', s, i === 0)).join('');
+  $('#difficulty-picker').innerHTML = Object.entries(CONFIG.difficulties)
+    .map(([id, d]) => option('difficulty', { id, label: d.label, desc: d.hint }, id === 'standard')).join('');
+}
+
+function updateSetupPreview() {
+  const form = $('#setup-form');
+  const fd = new FormData(form);
+  const name = (fd.get('party') || '').trim() || 'Mouvement Citoyen';
+  const leaderName = (fd.get('leader') || '').trim() || 'Alex Durand';
+  applyAccent(fd.get('color') || PARTY_COLORS[0]);
+  $('#preview-name').textContent = name;
+  $('#preview-leader').textContent = `${leaderName} vise la présidence.`;
+}
+
+function startNewGame(setup) {
+  clearSave();
+  state = newState(setup);
+  pushPoll();
+  addNews(`Lancement de la campagne de ${state.party.name}. Les sondages te placent à ${num1(lastShares().player)} %.`, 'muted');
+  save();
+  render();
+  showIntro();
+}
+
+/* ---------- En-tête ---------- */
+
+function renderPoster() {
+  const theme = THEMES.find(t => t.id === state.party.theme);
+  const runoff = state.round === 2;
+  $('#poster-tag').textContent = `Semaine ${state.week} sur ${CONFIG.lastWeek}`;
+  $('#poster-title').textContent = state.party.name;
+  $('#poster-sub').textContent = `${state.party.leader}, thème : ${theme.label}`;
+
+  const target = runoff ? CONFIG.lastWeek : CONFIG.firstRoundWeek;
+  const left = target - state.week;
+  const caption = left === 0
+    ? (runoff ? 'Le second tour a lieu ce soir.' : 'Le premier tour a lieu ce soir.')
+    : `${left} semaine${left > 1 ? 's' : ''} avant le ${runoff ? 'second' : 'premier'} tour`;
+
+  let dots = '';
+  for (let w = 1; w <= CONFIG.lastWeek; w++) {
+    const cls = [];
+    if (w < state.week) cls.push('done');
+    if (w === state.week) cls.push('now');
+    if (w === CONFIG.firstRoundWeek || w === CONFIG.lastWeek) cls.push('vote');
+    if (!runoff && w > CONFIG.firstRoundWeek) cls.push('later');
+    dots += `<li class="${cls.join(' ')}"></li>`;
+  }
+  $('#timeline').innerHTML = `<ol aria-hidden="true">${dots}</ol><p>${caption}</p>`;
+}
+
+/* ---------- Indicateurs ---------- */
+
+function renderStats() {
+  const s = state.stats;
+  const w = state.weekStart;
+  $('#stats').innerHTML = STAT_DEFS.map(d => {
+    const v = s[d.k];
+    const delta = v - w[d.k];
+    const isFunds = d.k === 'funds';
+    const pct = isFunds ? clamp(v / 100000 * 100, 0, 100) : v;
+    const shown = isFunds ? money(v) : nfInt.format(Math.round(v));
+    const deltaTxt = Math.abs(delta) >= 0.05
+      ? `<span class="delta ${delta > 0 ? 'pos' : 'neg'}">${isFunds ? signed(delta, false) + ' €' : signed(delta)} cette semaine</span>` : '';
+    return `<article class="stat ${isFunds && v < 0 ? 'debt' : ''}">
+      <span class="stat-label">${d.icon} ${d.label}</span>
+      <div class="stat-val">${shown}${d.suffix ? `<small>${d.suffix}</small>` : ''}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="stat-foot">${deltaTxt}</div>
+    </article>`;
+  }).join('');
+}
+
+/* ---------- Actions ---------- */
+
+function renderActions() {
+  const locked = state.phase !== 'campaign' || !!state.pendingEvent;
+  const cards = ACTIONS.map(a => {
+    const used = state.used[a.id] || 0;
+    let reason = '';
+    if (state.ap < a.ap) reason = 'Plus assez de points d’action';
+    else if (state.stats.funds < a.cost) reason = 'Fonds insuffisants';
+    const penalty = used ? `<em class="warn">Rendement −${Math.round((1 - Math.pow(0.7, used)) * 100)} % (déjà fait)</em>` : '';
+    return `<button type="button" class="action" data-action="${a.id}" ${locked || reason ? 'disabled' : ''}>
+      <span class="a-ico" aria-hidden="true">${a.icon}</span>
+      <span class="a-body">
+        <strong>${a.name}</strong>
+        <span class="a-desc">${a.desc}</span>
+        <span class="a-meta"><em>${a.ap} point${a.ap > 1 ? 's' : ''}</em><em>${a.cost ? money(a.cost) : 'Gratuit'}</em>${penalty}</span>
+        ${reason ? `<span class="a-reason">${reason}</span>` : ''}
+      </span>
+    </button>`;
+  }).join('');
+  $('#actions').innerHTML = `
+    <div class="panel-head"><h2>Actions de la semaine</h2><span class="muted">${state.ap} point${state.ap > 1 ? 's' : ''} restant${state.ap > 1 ? 's' : ''}</span></div>
+    <div class="actions-grid">${cards}</div>`;
+}
+
+/* ---------- Sondages ---------- */
+
+function renderPolls() {
+  const last = state.history[state.history.length - 1];
+  const prev = state.history[state.history.length - 2];
+  const scale = state.round === 1 ? 60 : 100;
+  const rows = Object.entries(last.shares).sort((a, b) => b[1] - a[1]).map(([id, v]) => {
+    const c = info(id);
+    const d = prev && prev.round === last.round && prev.shares[id] !== undefined ? v - prev.shares[id] : 0;
+    const dTxt = Math.abs(d) >= 0.1 ? `<small class="${d > 0 ? 'delta pos' : 'delta neg'}">${signed(d)}</small>` : '';
+    return `<li class="poll-row ${id === 'player' ? 'me' : ''}">
+      <span class="poll-name"><i style="background:${c.color}"></i><span>${esc(c.short)}</span></span>
+      <span class="poll-bar"><b style="width:${clamp(v / scale * 100, 0, 100)}%;background:${c.color}"></b></span>
+      <span class="poll-val">${num1(v)} %${dTxt}</span>
+    </li>`;
+  }).join('');
+  $('#polls').innerHTML = `
+    <div class="panel-head"><h2>Intentions de vote</h2><span class="muted">${state.round === 1 ? 'Premier tour' : 'Second tour'}</span></div>
+    <ul class="poll-list">${rows}</ul>
+    <div class="chart">${chartSvg()}</div>`;
+}
+
+function chartSvg() {
+  const hist = state.history.filter(h => h.round === state.round);
+  if (!hist.length) return '';
+  const ids = Object.keys(hist[hist.length - 1].shares).sort(a => (a === 'player' ? 1 : -1)); // le joueur passe au-dessus
+  const W = 320, H = 150, L = 30, R = 10, T = 10, B = 22;
+  const all = hist.flatMap(h => ids.map(id => h.shares[id] || 0));
+  const yMax = Math.max(30, Math.ceil(Math.max(...all) / 10) * 10);
+  const x = i => (hist.length === 1 ? L + (W - L - R) / 2 : L + i * (W - L - R) / (hist.length - 1));
+  const y = v => T + (1 - v / yMax) * (H - T - B);
+
+  let grid = '';
+  for (let g = 0; g <= yMax; g += 10) {
+    grid += `<line x1="${L}" x2="${W - R}" y1="${y(g)}" y2="${y(g)}" class="grid"/>`
+          + `<text x="${L - 6}" y="${y(g) + 3}" class="axis" text-anchor="end">${g}</text>`;
+  }
+  const lines = ids.map(id => {
+    const c = info(id);
+    const me = id === 'player';
+    const pts = hist.map((h, i) => `${x(i).toFixed(1)},${y(h.shares[id] || 0).toFixed(1)}`).join(' ');
+    const end = hist[hist.length - 1].shares[id] || 0;
+    return `<polyline points="${pts}" fill="none" stroke="${c.color}" stroke-width="${me ? 3 : 2}" stroke-linejoin="round" stroke-linecap="round" opacity="${me ? 1 : 0.85}"/>`
+         + `<circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(end).toFixed(1)}" r="${me ? 4 : 3}" fill="${c.color}"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution des intentions de vote au fil des semaines">${grid}${lines}`
+       + `<text x="${L}" y="${H - 6}" class="axis">Début</text><text x="${W - R}" y="${H - 6}" class="axis" text-anchor="end">Maintenant</text></svg>`;
+}
+
+/* ---------- Actualités ---------- */
+
+function renderNews() {
+  const items = state.news.slice(0, 14).map(n =>
+    `<li class="${n.tone}"><span class="wk">S${n.week}</span><span>${esc(n.text)}</span></li>`).join('');
+  $('#news').innerHTML = `<div class="panel-head"><h2>Dans la presse</h2></div><ul class="news-list">${items}</ul>`;
+}
+
+/* ---------- Barre du bas ---------- */
+
+function renderEndbar() {
+  const dots = Array.from({ length: CONFIG.apPerWeek }, (_, i) => `<i class="${i < state.ap ? 'on' : ''}"></i>`).join('');
+  $('#ap-display').innerHTML = `<span>${state.ap} point${state.ap > 1 ? 's' : ''} d’action</span><div>${dots}</div>`;
+  const btn = $('#btn-endweek');
+  btn.textContent = isElectionWeek() ? 'Passer au scrutin' : 'Terminer la semaine';
+  btn.disabled = !!state.pendingEvent;
+}
+
+/* ---------- Écran final ---------- */
+
+const ENDINGS = {
+  win:        { tag: 'Second tour',            title: 'Victoire !',                     text: s => `${s.party.name} l’emporte au second tour avec ${num1(s.results.round2.player)} % des voix. Le pays a fait son choix : c’est toi.` },
+  winFirst:   { tag: 'Premier tour',           title: 'Élection dès le premier tour !', text: s => `Avec ${num1(s.results.round1.player)} % des voix, ${s.party.name} l’emporte sans avoir besoin de second tour.` },
+  lose2:      { tag: 'Second tour',            title: 'Défaite au second tour',         text: s => `${s.party.name} recueille ${num1(s.results.round2.player)} % des voix. Il ne manquait pas grand-chose.` },
+  eliminated: { tag: 'Premier tour',           title: 'Élimination au premier tour',        text: s => `Avec ${num1(s.results.round1.player)} % des voix, ${s.party.name} ne passe pas le cap du premier tour.` },
+  loseFirst:  { tag: 'Premier tour',           title: 'Une victoire écrasante… pour un autre', text: s => `Une candidature rivale s’impose dès le premier tour. ${s.party.name} obtient ${num1(s.results.round1.player)} %.` },
+  bankrupt:   { tag: 'Campagne interrompue',   title: 'La campagne s’arrête, faute d’argent', text: s => `Les dettes de ${s.party.name} dépassent ce que les banques acceptent. Il faudra faire mieux avec le budget la prochaine fois.` },
+};
+
+function summaryText() {
+  const e = ENDINGS[state.ending.type];
+  const parts = [`Cap Présidence : ${state.party.name}, ${e.title.toLowerCase()}`];
+  if (state.results.round1) parts.push(`1er tour ${num1(state.results.round1.player)} %`);
+  if (state.results.round2) parts.push(`2nd tour ${num1(state.results.round2.player)} %`);
+  return parts.join(', ') + '.';
+}
+
+function renderEnd() {
+  const e = ENDINGS[state.ending.type];
+  const s = state.stats;
+  $('#end-tag').textContent = e.tag;
+  $('#end-title').textContent = e.title;
+  $('#end-text').textContent = e.text(state);
+
+  const rows = [['Semaines de campagne', state.ending.week], ['Popularité finale', Math.round(s.popularity) + '/100'],
+    ['Finances', money(s.funds)], ['Mobilisation', Math.round(s.mobilization) + '/100'], ['Crédibilité', Math.round(s.credibility) + '/100']];
+  if (state.results.round1) rows.push(['Score au 1er tour', num1(state.results.round1.player) + ' %']);
+  if (state.results.round2) rows.push(['Score au 2nd tour', num1(state.results.round2.player) + ' %']);
+  $('#end-summary').innerHTML = `<h2>Bilan de campagne</h2><dl class="summary">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+  $('#end-chart').innerHTML = `<h2>Sondages jusqu’au bout</h2><div class="chart">${chartSvg()}</div>`;
+}
+
+/* ---------- Fenêtres modales ---------- */
+
+let modalState = null;
+
+function openModal(cfg) {
+  const root = $('#modal-root');
+  modalState = cfg;
+  const choices = cfg.choices || [];
+  const actions = cfg.actions || [];
+  root.innerHTML = `
+    <div class="overlay">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        ${cfg.kicker ? `<p class="kicker">${esc(cfg.kicker)}</p>` : ''}
+        <h2 id="modal-title">${esc(cfg.title)}</h2>
+        <div class="modal-body">${cfg.body || ''}</div>
+        ${choices.length ? `<div class="choices">${choices.map((c, i) => `
+          <button type="button" class="choice" data-choice="${i}"><span>${esc(c.label)}</span>${c.hint ? `<small>${esc(c.hint)}</small>` : ''}</button>`).join('')}</div>` : ''}
+        ${actions.length ? `<div class="modal-actions">${actions.map((a, i) => `
+          <button type="button" class="btn ${a.primary ? 'primary' : ''}" data-maction="${i}">${esc(a.label)}</button>`).join('')}</div>` : ''}
+      </div>
+    </div>`;
+  document.body.classList.add('modal-open');
+
+  root.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => choices[+b.dataset.choice].onClick()));
+  root.querySelectorAll('[data-maction]').forEach(b => b.addEventListener('click', () => actions[+b.dataset.maction].onClick()));
+  if (cfg.dismissible) {
+    root.querySelector('.overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  }
+  const first = root.querySelector('button');
+  if (first) first.focus();
+}
+
+function closeModal() {
+  $('#modal-root').innerHTML = '';
+  modalState = null;
+  document.body.classList.remove('modal-open');
+}
+
+function showPendingEvent() {
+  if (!state || !state.pendingEvent) return;
+  const ev = getEvent(state.pendingEvent);
+  if (!ev) { state.pendingEvent = null; save(); render(); return; }
+  const themed = ev.theme && ev.theme === state.party.theme;
+  openModal({
+    kicker: ev.kind === 'debate' ? `Semaine ${state.week}, débat` : `Semaine ${state.week}, imprévu`,
+    title: ev.title,
+    body: `<p>${esc(ev.text)}</p>` + (themed ? '<p class="note">C’est ton thème de prédilection : tu joues à domicile.</p>' : ''),
+    choices: ev.choices.map((c, i) => ({ label: c.label, hint: c.hint, onClick: () => resolveEvent(ev, i) })),
+  });
+}
+
+function rulesHtml() {
+  return `<p>Tu as ${CONFIG.firstRoundWeek} semaines avant le premier tour. Chaque semaine, tu répartis ${CONFIG.apPerWeek} points d’action, puis tu passes à la suivante.</p>
+    <ul class="rules">
+      <li><b>Popularité</b> : ton audience auprès des électeurs. Elle s’érode un peu chaque semaine.</li>
+      <li><b>Finances</b> : chaque action coûte, et ton équipe aussi (${money(CONFIG.weeklyCost)} par semaine). À découvert, ta crédibilité s’effondre.</li>
+      <li><b>Mobilisation</b> : tes bénévoles. Elle rend tes actions plus efficaces et pèse le jour du vote.</li>
+      <li><b>Crédibilité</b> : la confiance des médias et des donateurs. Elle protège des faux pas.</li>
+    </ul>
+    <p>Répéter la même action dans la semaine rapporte de moins en moins. Les deux premiers du premier tour s’affrontent au second.</p>`;
+}
+
+function showIntro() {
+  openModal({
+    title: `Bienvenue dans la course, ${state.party.leader}`,
+    body: rulesHtml(),
+    actions: [{ label: 'Lancer la campagne', primary: true, onClick: () => { closeModal(); state.introSeen = true; startWeek(); } }],
+  });
+}
+
+function openMenu() {
+  openModal({
+    title: 'Menu',
+    dismissible: true,
+    body: '<p class="muted">Ta partie est sauvegardée automatiquement dans ce navigateur, après chaque action.</p>',
+    actions: [
+      { label: 'Règles du jeu', onClick: () => openModal({ title: 'Règles du jeu', dismissible: true, body: rulesHtml(), actions: [{ label: 'Fermer', primary: true, onClick: closeModal }] }) },
+      { label: 'Nouvelle partie', onClick: confirmNewGame },
+      { label: 'Reprendre', primary: true, onClick: closeModal },
+    ],
+  });
+}
+
+function confirmNewGame() {
+  openModal({
+    title: 'Abandonner cette campagne ?',
+    dismissible: true,
+    body: '<p>Ta partie en cours sera supprimée et tu recommenceras de zéro.</p>',
+    actions: [
+      { label: 'Garder ma partie', onClick: closeModal },
+      { label: 'Recommencer', primary: true, onClick: () => { clearSave(); showSetup(); } },
+    ],
+  });
+}
+
+/* ---------- Puces d’effets et notifications ---------- */
+
+function chipsHtml(applied) {
+  const out = [];
+  const add = (val, fmt, label, invert) => {
+    if (val === undefined || Math.abs(val) < 0.05) return;
+    const positive = invert ? val < 0 : val > 0;
+    out.push(`<span class="chip ${positive ? 'pos' : 'neg'}">${fmt(val)} ${label}`.trim() + '</span>');
+  };
+  add(applied.popularity,   v => signed(v), 'popularité');
+  add(applied.funds,        v => signed(v, false) + ' €', '');
+  add(applied.mobilization, v => signed(v), 'mobilisation');
+  add(applied.credibility,  v => signed(v), 'crédibilité');
+  add(applied.leader,       v => signed(v), 'pour le rival en tête', true);
+  return out.join('');
+}
+
+function toast(html, applied) {
+  const root = $('#toasts');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>${html}</span><div class="chips">${chipsHtml(applied)}</div>`;
+  root.appendChild(el);
+  while (root.children.length > 3) root.removeChild(root.firstChild);
+  setTimeout(() => el.remove(), 4200);
+}
+
+function resultsHtml(shares, qualified) {
+  const ranked = Object.entries(shares).sort((a, b) => b[1] - a[1]);
+  const scale = ranked.length > 2 ? 1.8 : 1;
+  return `<ol class="results">${ranked.map(([id, v], i) => {
+    const c = info(id);
+    return `<li class="${id === 'player' ? 'me' : ''}">
+      <span class="rk">${i + 1}</span>
+      <span class="rname"><i style="background:${c.color}"></i><span>${esc(c.short)}</span>${qualified.includes(id) ? '<em>qualifié</em>' : ''}</span>
+      <span class="rbar"><b style="width:${clamp(v * scale, 0, 100)}%;background:${c.color}"></b></span>
+      <strong>${num1(v)} %</strong>
+    </li>`;
+  }).join('')}</ol>`;
+}
+
+
+/* ============================================================
+   6. DÉMARRAGE
+   ============================================================ */
+
+function bindGlobalEvents() {
+  $('#btn-menu').addEventListener('click', openMenu);
+  $('#btn-endweek').addEventListener('click', endWeek);
+  $('#actions').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (btn) doAction(btn.dataset.action);
+  });
+
+  const form = $('#setup-form');
+  form.addEventListener('input', updateSetupPreview);
+  form.addEventListener('change', updateSetupPreview);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    startNewGame({
+      name: (fd.get('party') || '').trim() || 'Mouvement Citoyen',
+      leader: (fd.get('leader') || '').trim() || 'Alex Durand',
+      color: PARTY_COLORS.includes(fd.get('color')) ? fd.get('color') : PARTY_COLORS[0],
+      theme: THEMES.some(t => t.id === fd.get('theme')) ? fd.get('theme') : THEMES[0].id,
+      style: STYLES.some(s => s.id === fd.get('style')) ? fd.get('style') : STYLES[0].id,
+      difficulty: CONFIG.difficulties[fd.get('difficulty')] ? fd.get('difficulty') : 'standard',
+    });
+  });
+
+  $('#btn-replay').addEventListener('click', () => { clearSave(); showSetup(); });
+  $('#btn-share').addEventListener('click', () => {
+    const text = summaryText();
+    const done = () => toastPlain('Score copié dans le presse-papiers.');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => window.prompt('Copie ton score :', text));
+    else window.prompt('Copie ton score :', text);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modalState && modalState.dismissible) closeModal();
+  });
+}
+
+function toastPlain(text) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function init() {
+  const boot = document.getElementById('boot-msg');
+  if (boot) boot.remove();
+  bindGlobalEvents();
+  state = loadSave();
+  if (!state) { showSetup(); return; }
+  render();
+  if (state.phase === 'campaign') {
+    if (!state.introSeen) showIntro();
+    else showPendingEvent();
+  }
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+
+</script>
+</body>
+</html>
