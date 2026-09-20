@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Cap Présidence — le jeu de campagne</title>
+  <title>Cap Présidence — le jeu de campagne · v16</title>
   <meta name="description" content="Fonde ton parti, mène ta campagne semaine après semaine et tente de gagner la présidentielle d’un pays imaginaire. Jeu solo, sans compte, sauvegardé dans ton navigateur.">
   <meta name="theme-color" content="#101a33">
   <style>
@@ -1123,6 +1123,371 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .screen.screen-visible { animation:none; }
 }
+
+
+/* ============================================================
+   V16 — STABILITÉ, RÉALISME VISUEL ET ACCESSIBILITÉ
+   ============================================================ */
+html, body { background-color:#e8edf4 !important; }
+html { color-scheme: light !important; }
+body { position:relative; isolation:isolate; min-height:100vh; }
+.presidential-bg { z-index:0 !important; opacity:1 !important; }
+.screen, .poster, .layout, .setup, .endbar, #toasts, #modal-root { position:relative; z-index:1; }
+.endbar { z-index:20; }
+#modal-root { z-index:100; }
+.screen:not([hidden]) { display:block !important; opacity:1 !important; transform:none !important; visibility:visible !important; }
+.screen-boot-fallback { min-height:100vh; }
+
+/* Socle visuel robuste : aucun filtre obligatoire, aucun arrière-plan externe. */
+body::before { z-index:-1; opacity:.38; mix-blend-mode:normal; }
+body::after { z-index:-2; }
+.presidential-bg::before, .presidential-bg::after { pointer-events:none; }
+
+.setup { max-width:900px; padding-top:28px; }
+.setup-preamble {
+  display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center;
+  margin:0 0 16px; padding:14px 16px; border-radius:16px;
+  background:rgba(255,255,255,.88); border:1px solid rgba(24,54,95,.14);
+  box-shadow:0 12px 26px rgba(16,32,58,.07), inset 0 1px 0 #fff;
+}
+.tricolor-mark {
+  width:52px; height:52px; border-radius:14px;
+  background:linear-gradient(90deg,#002395 0 33.33%,#fff 33.33% 66.66%,#ef4135 66.66%);
+  box-shadow:0 8px 18px rgba(16,32,58,.12), inset 0 1px 0 rgba(255,255,255,.65);
+  border:1px solid rgba(16,32,58,.1);
+}
+.party-option > span { grid-template-columns:auto 1fr; grid-template-rows:auto auto; column-gap:10px; }
+.party-option > span > i {
+  grid-row:1 / span 2; width:8px; border-radius:999px; background:var(--party-color); box-shadow:0 0 0 1px rgba(16,32,58,.08); 
+}
+.party-option small { grid-column:2; text-transform:uppercase; letter-spacing:.06em; font-size:.68rem; font-weight:800; opacity:.65; }
+
+.poster { box-shadow:0 18px 52px rgba(16,32,58,.22); }
+.poster::before { height:70px; background:linear-gradient(90deg,rgba(255,255,255,.08),transparent 28%,rgba(255,255,255,.06) 70%,transparent), repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 2px,transparent 2px 10px); }
+.poster .poster-tag::before { content:'🇫🇷 '; }
+
+.panel, .stat, .action, .option > span, .brief-card, .achievement, .media-card, .choice, .modal {
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.panel:hover { transform:translateY(-1px); box-shadow:0 20px 42px rgba(16,32,58,.12),0 3px 8px rgba(16,32,58,.05),inset 0 1px 0 #fff; }
+.stat:hover, .action:hover:not(:disabled), .achievement:not(.locked):hover { transform:translateY(-2px); }
+
+.btn, .action, .choice, .option > span { min-height:44px; }
+button, input, label { -webkit-tap-highlight-color:transparent; }
+input[type="text"]:focus { box-shadow:0 0 0 4px rgba(36,79,146,.12), inset 0 1px 2px rgba(16,32,58,.04); border-color:#244f92; }
+
+/* Ruban “édition spéciale” dans le jeu. */
+.poster::after { content:'ÉDITION SPÉCIALE · CAP PRÉSIDENCE'; letter-spacing:.14em; }
+
+/* Secours explicite si un navigateur masque une couche. */
+#screen-setup:not([hidden]) { background:transparent; }
+
+@media (max-width:760px) {
+  .setup-preamble { grid-template-columns:1fr; }
+  .tricolor-mark { width:100%; height:10px; border-radius:999px; }
+  .setup { padding-top:18px; }
+  .panel:hover { transform:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel, .stat, .action, .option > span, .brief-card, .achievement, .media-card, .choice, .modal { transition:none !important; }
+}
+
+
+
+/* ============================================================
+   V17 — STUDIO PRESIDENTIEL / FINITION PREMIUM
+   Objectif : rendu plus cinématographique, institutionnel et dense,
+   sans dépendance externe et sans toucher au moteur de jeu.
+   ============================================================ */
+:root{
+  --studio-navy:#07172c;
+  --studio-blue:#0d2a52;
+  --studio-red:#b51f34;
+  --studio-paper:#f4f1e9;
+  --studio-metal:#d8dde5;
+  --studio-shadow:0 24px 60px rgba(4,16,33,.16);
+}
+
+html{background:#dfe5ed !important;}
+body{
+  background:
+    radial-gradient(900px 500px at 8% 4%,rgba(15,55,112,.16),transparent 65%),
+    radial-gradient(850px 520px at 94% 7%,rgba(181,31,52,.14),transparent 66%),
+    linear-gradient(180deg,#eef1f5 0%,#e3e8ef 48%,#d8e0e9 100%) !important;
+}
+body::before{
+  opacity:.26 !important;
+  background:
+    radial-gradient(circle at 12% 18%,rgba(255,255,255,.5) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 76% 36%,rgba(9,25,48,.08) 0 1px,transparent 1.4px),
+    repeating-linear-gradient(90deg,rgba(8,24,48,.018) 0 1px,transparent 1px 7px) !important;
+  background-size:18px 18px,27px 27px,auto !important;
+}
+body::after{
+  background:
+    linear-gradient(90deg,rgba(0,35,149,.08) 0 8%,transparent 8% 92%,rgba(239,65,53,.11) 92% 100%),
+    radial-gradient(1000px 260px at 50% 100%,rgba(8,22,42,.10),transparent 72%) !important;
+}
+
+/* Profondeur architecturale du décor */
+.presidential-bg::before{
+  right:-2vw !important;
+  bottom:-1vh !important;
+  width:min(920px,72vw) !important;
+  height:min(520px,48vw) !important;
+  opacity:.24 !important;
+  background:
+    linear-gradient(180deg,transparent 0 13%,rgba(7,23,44,.20) 13% 16%,transparent 16% 100%),
+    repeating-linear-gradient(90deg,transparent 0 6.4%,rgba(7,23,44,.22) 6.4% 7.2%,transparent 7.2% 13.5%),
+    linear-gradient(180deg,transparent 0 42%,rgba(7,23,44,.24) 42% 100%),
+    linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.18)) !important;
+  clip-path:polygon(7% 100%,7% 48%,13% 48%,13% 29%,22% 29%,22% 18%,36% 18%,36% 29%,45% 29%,45% 9%,55% 9%,55% 30%,67% 30%,67% 18%,82% 18%,82% 36%,91% 36%,91% 100%);
+  filter:drop-shadow(0 -2px 0 rgba(255,255,255,.35));
+}
+.presidential-bg::after{
+  top:2vh !important;
+  right:2vw !important;
+  width:150px !important;
+  height:195px !important;
+  border-width:12px !important;
+  opacity:.10 !important;
+  box-shadow:0 18px 44px rgba(5,18,37,.12),inset 0 0 0 1px rgba(255,255,255,.65) !important;
+}
+
+/* En-tête : effet “chaîne nationale” */
+.poster{
+  min-height:205px !important;
+  background:
+    radial-gradient(900px 260px at 75% 15%,rgba(255,255,255,.09),transparent 62%),
+    radial-gradient(500px 240px at 15% 10%,rgba(255,255,255,.05),transparent 70%),
+    linear-gradient(118deg,#07172c 0%,#0c2850 48%,#6e1728 100%) !important;
+  box-shadow:0 22px 58px rgba(5,17,34,.25),inset 0 -1px 0 rgba(255,255,255,.13) !important;
+}
+.poster::before{
+  height:82px !important;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.09),transparent 25%,rgba(255,255,255,.05) 67%,transparent),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 2px,transparent 2px 12px),
+    linear-gradient(180deg,transparent,rgba(0,0,0,.22)) !important;
+}
+.poster::after{
+  content:'● DIRECT · CAP PRÉSIDENCE' !important;
+  right:20px !important;
+  top:19px !important;
+  bottom:auto !important;
+  padding:5px 9px !important;
+  border:1px solid rgba(255,255,255,.2) !important;
+  border-radius:999px !important;
+  background:rgba(0,0,0,.18) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10) !important;
+  color:rgba(255,255,255,.72) !important;
+  font-size:.59rem !important;
+  letter-spacing:.14em !important;
+}
+.poster-top .btn.on-accent{
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.34) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 20px rgba(0,0,0,.10) !important;
+}
+.poster h1{
+  font-size:clamp(2.4rem,7.8vw,4.8rem) !important;
+  letter-spacing:-.045em !important;
+  line-height:.91 !important;
+}
+.poster-sub{font-size:1rem !important;max-width:70ch;}
+.timeline{margin-top:22px !important;}
+.timeline ol{gap:6px !important;}
+.timeline li{box-shadow:inset 0 1px 1px rgba(0,0,0,.32),0 1px 0 rgba(255,255,255,.08) !important;}
+.timeline p{font-size:.80rem !important;letter-spacing:.02em;}
+
+/* Corps : grille éditoriale premium */
+.layout{
+  max-width:1180px !important;
+  padding:26px 18px 136px !important;
+  gap:16px !important;
+}
+.panel{
+  border-radius:18px !important;
+  border:1px solid rgba(18,48,83,.18) !important;
+  box-shadow:0 18px 42px rgba(9,24,45,.10),0 3px 8px rgba(9,24,45,.05),inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+.panel::before{height:2px !important;opacity:.78 !important;}
+.panel:hover{transform:translateY(-2px);}
+.panel-head h2{font-size:1.08rem !important;}
+
+/* Cartes stats : écran de contrôle */
+.stats{gap:14px !important;}
+.stat{
+  min-height:132px !important;
+  padding:16px 16px 14px !important;
+  border-radius:16px !important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.98),rgba(245,247,250,.96)),
+    linear-gradient(90deg,rgba(0,35,149,.04),transparent 40%,rgba(239,65,53,.04)) !important;
+}
+.stat-label{font-size:.72rem !important;letter-spacing:.09em !important;}
+.stat-val{font-size:2.05rem !important;animation:studioNumber .42s ease-out;}
+@keyframes studioNumber{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+.stat .bar{margin-top:3px;}
+
+/* Actions : cartes type régie / dashboard */
+.action{
+  min-height:110px !important;
+  border-radius:16px !important;
+  padding:14px 16px !important;
+  background:
+    linear-gradient(180deg,#fff 0%,#f6f8fa 100%),
+    linear-gradient(90deg,rgba(0,35,149,.03),transparent 50%,rgba(239,65,53,.03)) !important;
+}
+.action::before{width:4px !important;opacity:.86 !important;}
+.action.featured{border-color:rgba(181,31,52,.33) !important;}
+.a-ico{width:48px !important;height:48px !important;border-radius:13px !important;}
+.a-body strong{font-size:1.03rem !important;}
+.a-meta em{background:#eef2f6 !important;}
+
+/* Sondages plus “data room” */
+.poll-row{min-height:31px !important;}
+.poll-name{font-size:.86rem !important;}
+.poll-bar{height:16px !important;border-radius:5px !important;}
+.poll-val{font-size:.88rem !important;}
+
+/* Briefing : dossier confidentiel */
+.presidential-panel{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.99),rgba(240,244,248,.95)),
+    repeating-linear-gradient(0deg,rgba(7,23,44,.018) 0 1px,transparent 1px 4px) !important;
+}
+.brief-card{border-radius:14px !important;padding:14px !important;}
+.badge{border-radius:7px !important;font-size:.76rem !important;}
+
+/* Médias : vrai mur d’antenne */
+#media-center{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(400px 180px at 78% 12%,rgba(126,167,218,.14),transparent 70%),
+    linear-gradient(180deg,#07172c,#0b2446 55%,#061426) !important;
+}
+#media-center::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  height:56px;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.32));
+  pointer-events:none;
+}
+.media-stack{gap:10px !important;position:relative;z-index:1;}
+.media-card{
+  min-height:92px;
+  border-radius:12px !important;
+  padding:13px 13px 11px 16px !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035)) !important;
+}
+.media-card b{font-size:.84rem !important;letter-spacing:.01em;}
+.flash-headline{font-size:.95rem !important;}
+
+/* Alliances / faits marquants : finition dossier */
+#alliance-box,#achievements{background:linear-gradient(180deg,#fff,#f5f7fa) !important;}
+#alliance-box::after{opacity:.06 !important;}
+.achievement{min-width:165px !important;border-radius:12px !important;}
+.achievement.locked{filter:saturate(.55);}
+
+/* Écrans de création : look “war room” */
+#screen-setup .setup-preamble{
+  position:relative;
+  overflow:hidden;
+  min-height:78px;
+  border-radius:18px !important;
+  background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(243,246,249,.90)) !important;
+}
+#screen-setup .setup-preamble::after{
+  content:"PRÉPARATION · DOSSIER DE CAMPAGNE";
+  position:absolute;
+  right:16px;
+  bottom:11px;
+  font-size:.58rem;
+  font-weight:900;
+  letter-spacing:.16em;
+  color:#6b788d;
+}
+#screen-setup .field{position:relative;z-index:1;}
+#screen-setup legend,#screen-setup .field>span{font-size:.81rem !important;text-transform:uppercase;letter-spacing:.075em;color:#1b3558 !important;}
+#screen-setup input[type="text"]{
+  min-height:50px !important;
+  border-radius:13px !important;
+  font-size:1rem !important;
+}
+#screen-setup .option>span{
+  border-radius:14px !important;
+  min-height:64px !important;
+}
+#screen-setup .btn.primary.big{
+  min-height:56px !important;
+  font-size:1.05rem !important;
+  letter-spacing:.005em;
+  box-shadow:0 14px 28px color-mix(in srgb,var(--accent) 22%,transparent),inset 0 1px 0 rgba(255,255,255,.24) !important;
+}
+
+/* Modales : événement comme une émission spéciale */
+.modal{
+  max-width:620px !important;
+  border-radius:20px !important;
+  overflow:hidden !important;
+  box-shadow:0 36px 100px rgba(1,10,22,.33),inset 0 1px 0 #fff !important;
+}
+.modal::before{
+  content:"";
+  display:block;
+  height:6px;
+  margin:-22px -20px 4px;
+  background:linear-gradient(90deg,#002395 0 33.33%,#f7f7f7 33.33% 66.66%,#ef4135 66.66%) !important;
+}
+.modal .kicker{
+  text-transform:uppercase !important;
+  letter-spacing:.10em !important;
+  font-size:.70rem !important;
+}
+.modal h2{font-size:1.82rem !important;}
+.choice{
+  min-height:60px !important;
+  padding:13px 16px !important;
+  border-radius:13px !important;
+}
+.choice:hover{transform:translateY(-2px) !important;}
+
+/* Footer fixe : sensation d’application */
+.endbar{
+  background:rgba(246,248,250,.92) !important;
+  box-shadow:0 -12px 34px rgba(7,22,43,.10),inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+.endbar-inner{max-width:1180px !important;}
+.endbar .btn.primary{min-height:48px !important;}
+
+/* Transitions cinéma */
+.screen.screen-visible{animation:studioEnter .46s cubic-bezier(.16,.84,.22,1) !important;}
+@keyframes studioEnter{
+  from{opacity:0;transform:translateY(14px) scale(.994);filter:blur(1.5px)}
+  to{opacity:1;transform:none;filter:none}
+}
+.overlay{animation:studioOverlay .24s ease-out;}
+@keyframes studioOverlay{from{opacity:0}to{opacity:1}}
+
+/* Mobile : garder le côté premium sans écraser l'écran */
+@media(max-width:760px){
+  .poster{min-height:188px !important;}
+  .poster::after{right:12px !important;top:14px !important;font-size:.53rem !important;}
+  .layout{padding:18px 12px 126px !important;}
+  .stats{gap:9px !important;}
+  .stat{min-height:118px !important;padding:13px !important;}
+  .stat-val{font-size:1.72rem !important;}
+  .action{min-height:100px !important;}
+  .modal{max-width:calc(100vw - 20px) !important;}
+  .modal h2{font-size:1.45rem !important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .stat-val,.overlay,.screen.screen-visible{animation:none !important;}
+}
+
 </style>
 </head>
 <body>
@@ -1142,16 +1507,17 @@ body::after {
     <p class="poster-sub" id="preview-leader">Alex Durand vise la présidence.</p>
   </div>
 
+  <div class="setup-preamble"><div class="tricolor-mark" aria-hidden="true"></div><div><strong>CAP PRÉSIDENCE</strong><p class="muted">Studio de campagne · préparation de l’élection</p></div></div>
   <form id="setup-form" class="setup" autocomplete="off">
     <fieldset class="field">
       <legend>Choisir ton départ politique</legend>
       <div class="options options-3">
         <label class="option"><input type="radio" name="partyMode" value="create" checked><span><strong>Créer mon parti</strong><small>Lancer ton propre mouvement.</small></span></label>
-        <label class="option"><input type="radio" name="partyMode" value="join"><span><strong>Rejoindre un parti réel</strong><small>Débuter dans un parti politique existant.</small></span></label>
+        <label class="option"><input type="radio" name="partyMode" value="join"><span><strong>Rejoindre une formation réelle</strong><small>Partir d’une formation représentée à l’Assemblée nationale.</small></span></label>
       </div>
       <div class="options" id="party-join-list"></div>
-      <p class="setup-note">🎮 Ton choix change ton point de départ, mais aucun parti n’est automatiquement gagnant.</p>
-    <p class="hint">Les noms des partis ci-dessus sont leurs noms actuels en France ; leurs programmes, leurs dirigeants réels et l’issue de l’élection ne sont pas reproduits : le scénario et les candidats du jeu restent fictifs.</p>
+      <p class="setup-note">🎮 Ton choix change ton point de départ, mais aucun parti ou formation n’est automatiquement gagnant.</p>
+    <p class="hint">Liste basée sur les groupes politiques actuels de l’Assemblée nationale au 19 septembre 2026. Le jeu utilise leurs noms comme point de départ ; les candidats, événements et résultats restent fictifs.</p>
     </fieldset>
 
     <div class="field-row">
@@ -1265,19 +1631,20 @@ body::after {
    1. DONNÉES
    ============================================================ */
 
-const SAVE_KEY = 'cap-presidence:save:v2';
+const SAVE_KEY = 'cap-presidence:save:v3';
 
 const JOINABLE_PARTIES = [
-  { name:'Rassemblement National', color:'#1f3f8f' },
-  { name:'Renaissance', color:'#f4c542' },
-  { name:'Les Républicains', color:'#173b78' },
-  { name:'La France insoumise', color:'#8b1e3f' },
-  { name:'Parti socialiste', color:'#e83f6f' },
-  { name:'Les Écologistes', color:'#2e8b57' },
-  { name:'Mouvement Démocrate (MoDem)', color:'#f0b429' },
-  { name:'Horizons', color:'#102a43' },
-  { name:'Parti communiste français', color:'#c62828' },
-  { name:'Reconquête', color:'#243447' }
+  { name:'Rassemblement National', type:'groupe parlementaire', color:'#173b78' },
+  { name:'Ensemble pour la République', type:'groupe parlementaire', color:'#244f92' },
+  { name:'La France insoumise - Nouveau Front Populaire', type:'groupe parlementaire', color:'#7a1f3d' },
+  { name:'Socialistes et apparentés', type:'groupe parlementaire', color:'#d43b67' },
+  { name:'Droite Républicaine', type:'groupe parlementaire', color:'#2b4774' },
+  { name:'Écologiste et Social', type:'groupe parlementaire', color:'#3d7f5f' },
+  { name:'Les Démocrates', type:'groupe parlementaire', color:'#a77a00' },
+  { name:'Horizons & Indépendants', type:'groupe parlementaire', color:'#26384d' },
+  { name:'Libertés, Indépendants, Outre-mer et Territoires', type:'groupe parlementaire', color:'#51667f' },
+  { name:'Gauche Démocrate et Républicaine', type:'groupe parlementaire', color:'#9e3038' },
+  { name:'Union des droites pour la République', type:'groupe parlementaire', color:'#46556b' }
 ];
 
 const MEDIA_PROFILES = [
@@ -2293,7 +2660,7 @@ function showSetup() {
 
 function renderSetupPickers() {
   const jp=document.getElementById('party-join-list');
-  if(jp) jp.innerHTML=JOINABLE_PARTIES.map((p,i)=>`<label class="option"><input type="radio" name="joinedParty" value="${i}"><span><strong>${p.name}</strong></span></label>`).join('');
+  if(jp) jp.innerHTML=JOINABLE_PARTIES.map((p,i)=>`<label class="option party-option"><input type="radio" name="joinedParty" value="${i}"><span><i style="--party-color:${p.color}"></i><strong>${esc(p.name)}</strong><small>${esc(p.type)}</small></span></label>`).join('');
   $('#color-picker').innerHTML = PARTY_COLORS.map((c, i) => `
     <label class="swatch"><input type="radio" name="color" value="${c}" ${i === 0 ? 'checked' : ''} aria-label="Couleur ${i + 1}"><span style="--c:${c}"></span></label>`).join('');
 
@@ -2775,6 +3142,27 @@ function init() {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 
+/* File-safe emergency fallback : le menu reste visible même si un navigateur rencontre une erreur JS. */
+window.addEventListener('error', () => {
+  const setup = document.getElementById('screen-setup');
+  const game = document.getElementById('screen-game');
+  const end = document.getElementById('screen-end');
+  if (setup && setup.hidden && game && game.hidden && end && end.hidden) setup.hidden = false;
+  if (setup && !setup.querySelector('[data-runtime-safe]')) {
+    const n = document.createElement('div');
+    n.dataset.runtimeSafe = '1';
+    n.className = 'setup-note';
+    n.textContent = 'Le menu de démarrage reste disponible. Une erreur d’affichage a été isolée.';
+    setup.insertBefore(n, setup.firstChild);
+  }
+});
+setTimeout(() => {
+  const screens = ['setup','game','end'].map(n => document.getElementById('screen-'+n)).filter(Boolean);
+  if (screens.length && screens.every(s => s.hidden)) {
+    const setup = document.getElementById('screen-setup');
+    if (setup) { setup.hidden = false; setup.classList.add('screen-visible','screen-boot-fallback'); }
+  }
+}, 900);
 
 </script>
 </body>
