@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Cap Présidence — le jeu de campagne · v18</title>
+  <title>Cap Présidence — le jeu de campagne · v20</title>
   <meta name="description" content="Fonde ton parti, mène ta campagne semaine après semaine et tente de gagner la présidentielle d’un pays imaginaire. Jeu solo, sans compte, sauvegardé dans ton navigateur.">
   <meta name="theme-color" content="#101a33">
   <style>
@@ -1787,6 +1787,70 @@ body[data-screen="end"] .layout{animation:contentSettle .62s ease both;}
 @media (prefers-reduced-motion:reduce){
   body::before,body::after,.presidential-bg::before,.poster::before,#media-center .media-card::after{animation:none!important;}
   .action::after{display:none!important;}
+}
+</style>
+
+<style id="pc-layout-fix-v20">
+/* V20 — correction définitive du placement desktop des actions */
+@media (min-width: 900px) {
+  #screen-game .compact-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 390px) !important;
+    grid-template-areas: "command drawers" !important;
+    gap: 22px !important;
+    align-items: start !important;
+    width: min(1180px, calc(100vw - 36px)) !important;
+    max-width: 1180px !important;
+    margin-inline: auto !important;
+  }
+  #screen-game .campaign-command {
+    grid-area: command !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 16px !important;
+    align-self: start !important;
+  }
+  #screen-game #weekly-brief,
+  #screen-game #actions {
+    grid-area: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+  #screen-game #actions {
+    order: 2 !important;
+    min-height: 0 !important;
+  }
+  #screen-game .campaign-drawers {
+    grid-area: drawers !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 390px !important;
+    margin: 0 !important;
+    align-self: start !important;
+    position: sticky !important;
+    top: 16px !important;
+  }
+  #screen-game .campaign-drawers-title {
+    margin: 0 2px 4px !important;
+  }
+  #screen-game .actions-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 12px !important;
+  }
+}
+@media (min-width: 900px) and (max-width: 1050px) {
+  #screen-game .compact-layout {
+    grid-template-columns: minmax(0,1fr) 300px !important;
+    gap: 16px !important;
+    width: min(100%, calc(100vw - 28px)) !important;
+  }
+  #screen-game .campaign-drawers { max-width: 300px !important; }
+  #screen-game .actions-grid { grid-template-columns: 1fr !important; }
 }
 </style>
 </head>
