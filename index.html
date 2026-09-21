@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Cap Présidence — le jeu de campagne · v16</title>
+  <title>Cap Présidence — le jeu de campagne · v18</title>
   <meta name="description" content="Fonde ton parti, mène ta campagne semaine après semaine et tente de gagner la présidentielle d’un pays imaginaire. Jeu solo, sans compte, sauvegardé dans ton navigateur.">
   <meta name="theme-color" content="#101a33">
   <style>
@@ -1533,6 +1533,138 @@ body::after{
 @media (prefers-reduced-motion: reduce){
  .page-transition{display:none !important}.screen.screen-visible,.screen.screen-leaving{animation:none !important}
 }
+
+/* ============================================================
+   V18 — MODE ESSENTIEL
+   Une seule priorité à la fois : jouer. Les données détaillées
+   restent disponibles à la demande dans des volets accessibles.
+   ============================================================ */
+.compact-layout{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  grid-template-areas:none !important;
+  max-width:1180px !important;
+  align-items:start;
+}
+.campaign-command{display:grid;gap:16px;min-width:0;}
+.campaign-drawers{display:grid;gap:10px;min-width:0;align-content:start;}
+.campaign-drawers-title{
+  margin:2px 2px 0;
+  color:#52627a;
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.campaign-drawer{
+  overflow:hidden;
+  border:1px solid rgba(18,48,83,.18);
+  border-radius:16px;
+  background:rgba(255,255,255,.88);
+  box-shadow:0 10px 24px rgba(9,24,45,.06),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.campaign-drawer > summary{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:68px;
+  padding:12px 14px;
+  cursor:pointer;
+  list-style:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.campaign-drawer > summary::-webkit-details-marker{display:none;}
+.campaign-drawer > summary:hover{background:rgba(13,42,82,.045);}
+.campaign-drawer > summary:focus-visible{outline:3px solid var(--focus);outline-offset:-3px;}
+.drawer-label{display:flex;align-items:center;gap:11px;min-width:0;}
+.drawer-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 36px;
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  background:linear-gradient(135deg,rgba(13,42,82,.12),rgba(181,31,52,.10));
+  font-size:1.05rem;
+}
+.drawer-copy{display:grid;gap:1px;min-width:0;}
+.drawer-copy strong{font-size:.97rem;color:#102746;}
+.drawer-copy small{overflow:hidden;color:#66758d;font-size:.79rem;text-overflow:ellipsis;white-space:nowrap;}
+.drawer-action{
+  flex:0 0 auto;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#eaf0f6;
+  color:#18365f;
+  font-size:.74rem;
+  font-weight:800;
+}
+.campaign-drawer[open] .drawer-action{font-size:0;background:#102746;color:#fff;}
+.campaign-drawer[open] .drawer-action::after{content:'Fermer';font-size:.74rem;}
+.campaign-drawer > .stats{padding:0 14px 14px;}
+.campaign-drawer .stats{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:10px !important;}
+.campaign-drawer .stat{min-height:108px !important;padding:12px !important;}
+.campaign-drawer .stat-val{font-size:1.65rem !important;}
+.campaign-drawer > .panel{
+  padding:0 14px 14px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.campaign-drawer > .panel::before{display:none !important;}
+.campaign-drawer > .panel:hover{transform:none !important;}
+.campaign-drawer .panel-head{margin-bottom:10px;}
+.campaign-drawer .media-stack{padding-top:0;}
+
+@media (min-width:900px){
+  .compact-layout{grid-template-columns:minmax(0,1.22fr) minmax(310px,.78fr) !important;}
+  .campaign-drawers{position:sticky;top:14px;}
+}
+
+@media (max-width:760px){
+  .poster{
+    min-height:0 !important;
+    padding:calc(12px + env(safe-area-inset-top)) 14px 13px !important;
+  }
+  .poster::after{display:none !important;}
+  .poster h1{margin-top:10px !important;font-size:clamp(2rem,10vw,2.7rem) !important;line-height:.94 !important;}
+  .poster-sub{margin-top:7px !important;font-size:.86rem !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .timeline{margin-top:13px !important;}
+  .timeline ol{gap:4px !important;}
+  .timeline p{margin-top:5px !important;font-size:.72rem !important;}
+  .compact-layout{padding:14px 12px 118px !important;gap:14px !important;}
+  .campaign-command{gap:14px;}
+  .campaign-drawers{gap:8px;}
+  .campaign-drawer{border-radius:14px;}
+  .campaign-drawer > summary{min-height:62px;padding:10px 12px;}
+  .drawer-icon{flex-basis:33px;width:33px;height:33px;border-radius:10px;font-size:1rem;}
+  .drawer-copy strong{font-size:.93rem;}
+  .drawer-copy small{font-size:.74rem;}
+  .drawer-action{padding:5px 8px;}
+  #weekly-brief{padding:13px !important;}
+  #weekly-brief .panel-head{margin-bottom:8px;}
+  #weekly-brief .brief-grid{gap:8px;}
+  #weekly-brief .brief-card{padding:10px;}
+  #weekly-brief .brief-badges{gap:5px;margin-top:6px;}
+  #weekly-brief .badge{font-size:.71rem;padding:3px 7px;}
+  .actions-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;}
+  .action{min-height:0 !important;gap:8px !important;padding:10px !important;}
+  .a-ico{width:34px !important;height:34px !important;border-radius:10px !important;font-size:1.05rem !important;}
+  .a-body{gap:2px;}
+  .a-body strong{font-size:.84rem !important;line-height:1.12;}
+  .action .a-desc,.action .ap-meta,.action .a-meta .warn{display:none;}
+  .a-meta{margin-top:2px;gap:4px;}
+  .a-meta em{font-size:.69rem;padding:1px 5px;}
+  .a-reason{font-size:.68rem;line-height:1.15;}
+  .campaign-drawer > .stats{padding:0 10px 10px;}
+  .campaign-drawer > .panel{padding:0 12px 12px !important;}
+  .campaign-drawer .stats{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;}
+  .campaign-drawer .stat{min-height:96px !important;padding:10px !important;}
+  .campaign-drawer .stat-val{font-size:1.48rem !important;}
+}
 </style>
 </head>
 <body>
@@ -1620,15 +1752,49 @@ body::after{
     <div id="timeline" class="timeline"></div>
   </header>
 
-  <main class="layout">
-    <section id="stats" class="stats" aria-label="Indicateurs de campagne"></section>
-    <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
-    <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
-    <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
-    <section id="weekly-brief" class="panel presidential-panel" aria-label="Briefing de la semaine"></section>
-    <section id="media-center" class="panel"><h2>📺 Médias nationaux</h2><p id="media-feed">Les chaînes et journaux analysent ta campagne.</p></section>
-    <section id="alliance-box" class="panel"><h2>🤝 Alliances du second tour</h2><p id="alliance-feed">Les négociations apparaîtront après le premier tour.</p></section>
-    <section id="achievements" class="panel"><h2>🏅 Faits marquants</h2><div id="achievement-feed"></div></section>
+  <main class="layout compact-layout">
+    <div class="campaign-command">
+      <section id="weekly-brief" class="panel presidential-panel" aria-label="Briefing de la semaine"></section>
+      <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
+    </div>
+
+    <aside class="campaign-drawers" aria-label="Informations de campagne">
+      <p class="campaign-drawers-title">À consulter quand tu veux</p>
+
+      <details class="campaign-drawer">
+        <summary>
+          <span class="drawer-label"><span class="drawer-icon" aria-hidden="true">📊</span><span class="drawer-copy"><strong>Mes indicateurs</strong><small id="stats-summary">Tes 5 repères de campagne</small></span></span>
+          <span class="drawer-action" aria-hidden="true">Voir</span>
+        </summary>
+        <section id="stats" class="stats" aria-label="Indicateurs de campagne"></section>
+      </details>
+
+      <details class="campaign-drawer">
+        <summary>
+          <span class="drawer-label"><span class="drawer-icon" aria-hidden="true">🗳️</span><span class="drawer-copy"><strong>Sondages</strong><small id="poll-summary">Voir les intentions de vote</small></span></span>
+          <span class="drawer-action" aria-hidden="true">Voir</span>
+        </summary>
+        <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
+      </details>
+
+      <details class="campaign-drawer">
+        <summary>
+          <span class="drawer-label"><span class="drawer-icon" aria-hidden="true">📰</span><span class="drawer-copy"><strong>Dans la presse</strong><small id="news-summary">Les derniers titres de la campagne</small></span></span>
+          <span class="drawer-action" aria-hidden="true">Voir</span>
+        </summary>
+        <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
+      </details>
+
+      <details class="campaign-drawer">
+        <summary>
+          <span class="drawer-label"><span class="drawer-icon" aria-hidden="true">✦</span><span class="drawer-copy"><strong>Plus d'infos</strong><small id="extra-summary">Médias, alliances et trophées</small></span></span>
+          <span class="drawer-action" aria-hidden="true">Voir</span>
+        </summary>
+        <section id="media-center" class="panel"><h2>📺 Médias nationaux</h2><p id="media-feed">Les chaînes et journaux analysent ta campagne.</p></section>
+        <section id="alliance-box" class="panel"><h2>🤝 Alliances du second tour</h2><p id="alliance-feed">Les négociations apparaîtront après le premier tour.</p></section>
+        <section id="achievements" class="panel"><h2>🏅 Faits marquants</h2><div id="achievement-feed"></div></section>
+      </details>
+    </aside>
   </main>
 
   <footer class="endbar">
@@ -2825,6 +2991,8 @@ function renderStats() {
       <div class="stat-foot">${deltaTxt}</div>
     </article>`;
   }).join('');
+  const summary = document.getElementById('stats-summary');
+  if (summary) summary.textContent = `Popularité ${Math.round(s.popularity)}/100 · ${money(s.funds)}`;
 }
 
 /* ---------- Actions ---------- */
@@ -2844,7 +3012,7 @@ function renderActions() {
       <span class="a-body">
         <strong>${a.name}</strong>
         <span class="a-desc">${a.desc}</span>
-        <span class="a-meta">${streak}<em>${a.ap} point${a.ap > 1 ? 's' : ''}</em><em>${a.cost ? money(a.cost) : 'Gratuit'}</em>${penalty}</span>
+        <span class="a-meta">${streak}<em class="ap-meta">${a.ap} point${a.ap > 1 ? 's' : ''}</em><em class="cost-meta">${a.cost ? money(a.cost) : 'Gratuit'}</em>${penalty}</span>
         ${reason ? `<span class="a-reason">${reason}</span>` : ''}
       </span>
     </button>`;
@@ -2875,6 +3043,8 @@ function renderPolls() {
     <div class="panel-head"><h2>Intentions de vote</h2><span class="muted">${state.round === 1 ? 'Premier tour' : 'Second tour'}</span></div>
     <ul class="poll-list">${rows}</ul>
     <div class="chart">${chartSvg()}</div>`;
+  const summary = document.getElementById('poll-summary');
+  if (summary) summary.textContent = `Toi : ${num1(last.shares.player || 0)} % · ${state.round === 1 ? '1er tour' : '2nd tour'}`;
 }
 
 function chartSvg() {
@@ -2910,6 +3080,8 @@ function renderNews() {
   const items = state.news.slice(0, 14).map(n =>
     `<li class="${n.tone}"><span class="wk">S${n.week}</span><span>${esc(n.text)}</span></li>`).join('');
   $('#news').innerHTML = `<div class="panel-head"><h2>Dans la presse</h2></div><ul class="news-list">${items}</ul>`;
+  const summary = document.getElementById('news-summary');
+  if (summary) summary.textContent = state.news.length ? `${state.news.length} actualité${state.news.length > 1 ? 's' : ''} à relire` : 'Les derniers titres de la campagne';
 }
 
 /* ---------- Barre du bas ---------- */
@@ -2949,6 +3121,8 @@ function renderExtraPresidential(){
     const unlocked = state.achievements || [];
     ach.innerHTML = `<div class="achievement-list">${ACHIEVEMENTS.map(x=>`<div class="achievement ${unlocked.includes(x.id)?'':'locked'}"><strong>${unlocked.includes(x.id)?'🏅':'○'} ${esc(x.label)}</strong><small>${esc(x.desc)}</small></div>`).join('')}</div>`;
   }
+  const summary = document.getElementById('extra-summary');
+  if (summary) summary.textContent = state.round === 2 ? 'Médias, alliance et trophées' : `Médias et trophées · 1er tour en S${CONFIG.firstRoundWeek}`;
 } 
 
 function renderEndbar() {
