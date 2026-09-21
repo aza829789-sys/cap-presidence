@@ -1135,7 +1135,7 @@ body { position:relative; isolation:isolate; min-height:100vh; }
 .screen, .poster, .layout, .setup, .endbar, #toasts, #modal-root { position:relative; z-index:1; }
 .endbar { z-index:20; }
 #modal-root { z-index:100; }
-.screen:not([hidden]) { display:block !important; opacity:1 !important; transform:none !important; visibility:visible !important; }
+.screen:not([hidden]) { display:block !important; visibility:visible !important; }
 .screen-boot-fallback { min-height:100vh; }
 
 /* Socle visuel robuste : aucun filtre obligatoire, aucun arrière-plan externe. */
@@ -1664,6 +1664,129 @@ body::after{
   .campaign-drawer .stats{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;}
   .campaign-drawer .stat{min-height:96px !important;padding:10px !important;}
   .campaign-drawer .stat-val{font-size:1.48rem !important;}
+}
+
+
+/* ============================================================
+   V19 — DESKTOP STUDIO + TRANSITIONS RÉELLES + 15+ DÉTAILS VISUELS
+   ============================================================ */
+:root{
+  --studio-glass:rgba(255,255,255,.72);
+  --studio-border:rgba(16,42,74,.16);
+  --studio-blue:#0d2d63;
+  --studio-red:#bd2940;
+  --studio-ink:#0d1f37;
+}
+html,body{min-height:100%;}
+body{position:relative;overflow-x:hidden;}
+body::after{
+  background:
+    radial-gradient(620px 280px at 18% 8%,rgba(0,35,149,.10),transparent 72%),
+    radial-gradient(620px 300px at 84% 10%,rgba(239,65,53,.11),transparent 72%),
+    linear-gradient(90deg,rgba(255,255,255,.42),transparent 18% 82%,rgba(255,255,255,.26));
+  opacity:1!important;
+}
+body::before{
+  opacity:.18!important;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 59px,rgba(15,40,70,.035) 59px 60px),
+    repeating-linear-gradient(0deg,transparent 0 59px,rgba(15,40,70,.028) 59px 60px);
+}
+/* 1–3 : scène et profondeur générale */
+body[data-screen="setup"] .presidential-bg::before,
+body[data-screen="game"] .presidential-bg::before,
+body[data-screen="end"] .presidential-bg::before{animation:sceneBreath 14s ease-in-out infinite alternate;}
+@keyframes sceneBreath{from{transform:scale(1)}to{transform:scale(1.035) translate3d(-8px,-4px,0)}}
+.poster{isolation:isolate;min-height:210px!important;box-shadow:0 26px 70px rgba(4,18,38,.25)!important;}
+.poster::before{animation:posterLight 9s ease-in-out infinite alternate!important;}
+@keyframes posterLight{from{opacity:.48;transform:translateX(-2%)}to{opacity:.92;transform:translateX(2%)}}
+/* 4 : ligne tricolore dynamique */
+.poster::after{box-shadow:0 0 0 1px rgba(255,255,255,.05),0 8px 26px rgba(0,0,0,.14)!important;}
+.poster-top::after{content:"";position:absolute;left:0;right:0;top:-7px;height:2px;background:linear-gradient(90deg,#002395 0 33.33%,#fff 33.33% 66.66%,#ef4135 66.66%);opacity:.75;}
+/* 5 : timeline avec progression plus lisible */
+.timeline{position:relative;}
+.timeline ol{position:relative;z-index:1;}
+.timeline::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 18px);height:1px;background:rgba(255,255,255,.12);}
+/* 6–8 : desktop = véritable console en deux zones */
+@media (min-width:900px){
+  .compact-layout{grid-template-columns:minmax(0,1fr) minmax(330px,390px)!important;gap:20px!important;align-items:start!important;}
+  .campaign-command{gap:18px!important;}
+  .campaign-drawers{position:sticky!important;top:18px!important;gap:9px!important;}
+  .campaign-drawers-title{padding:0 3px 2px;}
+  .actions-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;}
+  #weekly-brief{min-height:150px;}
+  #actions{min-height:360px;}
+  .campaign-drawer{background:rgba(255,255,255,.78)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+}
+/* 9 : fenêtre de briefing avec bandeau de niveau */
+#weekly-brief{overflow:hidden!important;}
+#weekly-brief::after{content:"BRIEFING OPÉRATIONNEL";position:absolute;right:16px;top:10px;font-size:.56rem;font-weight:900;letter-spacing:.16em;color:#718096;opacity:.7;}
+/* 10 : actions premium + lumière au survol */
+.action{overflow:hidden!important;isolation:isolate;}
+.action::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0 40%,rgba(255,255,255,.48) 50%,transparent 60%);transform:translateX(-130%);transition:transform .55s ease;pointer-events:none;z-index:0;}
+.action:hover:not(:disabled)::after{transform:translateX(130%);}
+.action .a-ico,.action .a-body{position:relative;z-index:1;}
+.action:focus-visible{transform:translateY(-2px);box-shadow:0 0 0 4px rgba(36,79,146,.13),0 18px 32px rgba(16,32,58,.12)!important;}
+/* 11 : badges plus proches d'un produit fini */
+.badge{box-shadow:0 2px 8px rgba(16,32,58,.05),inset 0 1px 0 rgba(255,255,255,.8)!important;}
+.badge.accent{box-shadow:0 7px 16px color-mix(in srgb,var(--accent) 22%,transparent),inset 0 1px 0 rgba(255,255,255,.22)!important;}
+/* 12 : tiroirs avec état ouvert évident */
+.campaign-drawer>summary{transition:background .18s ease,transform .18s ease!important;}
+.campaign-drawer[open]>summary{background:linear-gradient(90deg,rgba(13,42,82,.06),rgba(181,31,52,.035))!important;}
+.campaign-drawer[open]>.stats,.campaign-drawer[open]>.panel{animation:drawerReveal .28s ease both;}
+@keyframes drawerReveal{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+/* 13 : barre d'action comme une app */
+.endbar{padding-top:11px!important;}
+.endbar-inner{gap:18px!important;}
+.ap{min-width:160px;}
+.ap>span{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:#627089;}
+.ap>div{gap:6px!important;}
+.ap i{width:12px!important;height:12px!important;border:none!important;background:#d8dfe8!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.12)!important;}
+.ap i.on{background:linear-gradient(180deg,#e44c5d,#a81931)!important;box-shadow:0 0 0 3px rgba(181,31,52,.10)!important;}
+/* 14 : médias façon régie TV */
+#media-center{border:1px solid rgba(255,255,255,.08)!important;}
+#media-center .media-card{overflow:hidden;}
+#media-center .media-card::after{animation:mediaScan 4.6s linear infinite;}
+@keyframes mediaScan{0%,78%,100%{transform:scaleY(.15);opacity:.35}85%{transform:scaleY(1);opacity:.9}}
+/* 15 : modal plus cinématographique */
+.modal{position:relative!important;}
+.modal::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(420px 160px at 80% 0%,rgba(255,255,255,.72),transparent 66%);}
+.modal>*{position:relative;z-index:1;}
+/* 16 : toasts premium */
+.toast{box-shadow:0 18px 42px rgba(8,20,38,.23),inset 0 1px 0 rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.08);}
+/* 17 : fin de partie plus spectaculaire */
+#screen-end .poster{min-height:240px!important;}
+#screen-end .end-layout{padding-top:28px!important;}
+#screen-end .panel{background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(244,247,250,.94))!important;}
+/* 18 : changement d'atmosphère discret selon l'écran */
+body[data-screen="setup"] .layout,body[data-screen="setup"] .setup{filter:saturate(.98);}
+body[data-screen="game"] .layout{animation:contentSettle .5s ease both;}
+body[data-screen="end"] .layout{animation:contentSettle .62s ease both;}
+@keyframes contentSettle{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* 19 : focus / clavier */
+.campaign-drawer summary:focus-visible,.action:focus-visible,.btn:focus-visible{outline:3px solid rgba(36,79,146,.36)!important;outline-offset:3px!important;}
+/* 20 : supprimer toute animation qui pourrait créer une sensation de bug */
+.screen:not([hidden]).screen-visible{opacity:1!important;visibility:visible!important;transform:none!important;}
+.screen:not([hidden]).screen-leaving{opacity:0!important;visibility:visible!important;transform:translate3d(-1.8%,0,0) scale(.985)!important;pointer-events:none!important;}
+/* 21 : vraie transition de contenu, avec état caché propre */
+.screen{will-change:opacity,transform,filter;}
+/* 22 : barre de transition plus forte */
+.page-transition{box-shadow:0 0 80px rgba(0,0,0,.24)!important;}
+.page-transition .pt-label{font-size:.72rem!important;text-transform:uppercase;}
+/* 23–25 : responsive desktop intermédiaire */
+@media (min-width:900px) and (max-width:1180px){
+  .compact-layout{grid-template-columns:minmax(0,1fr) minmax(285px,330px)!important;}
+  .action{min-height:100px!important;}
+  .campaign-drawer>summary{min-height:62px!important;}
+}
+@media (max-width:760px){
+  #weekly-brief::after{display:none;}
+  body[data-screen="game"] .layout{animation:mobileSettle .34s ease both;}
+  @keyframes mobileSettle{from{opacity:.65;transform:translateY(7px)}to{opacity:1;transform:none}}
+}
+@media (prefers-reduced-motion:reduce){
+  body::before,body::after,.presidential-bg::before,.poster::before,#media-center .media-card::after{animation:none!important;}
+  .action::after{display:none!important;}
 }
 </style>
 </head>
@@ -2812,11 +2935,14 @@ function showScreen(name) {
   const screens = ['setup', 'game', 'end'].map(n => $('#screen-' + n)).filter(Boolean);
   const target = $('#screen-' + name);
   if (!target) return;
-  const active = screens.find(el => !el.hidden && el !== target);
-  if (screenTransitionBusy && active === target) return;
 
+  const active = screens.find(el => !el.hidden && el !== target);
+  if (active === target) return;
   if (screenTransitionTimer) clearTimeout(screenTransitionTimer);
   screenTransitionBusy = true;
+
+  document.body.dataset.screen = name;
+  document.documentElement.dataset.screen = name;
 
   const curtain = $('#page-transition');
   if (curtain) {
@@ -2830,23 +2956,21 @@ function showScreen(name) {
     active.classList.add('screen-leaving');
   }
 
-  // On garde la cible prête avant le lever de rideau, sans jamais afficher deux écrans.
   target.hidden = false;
-  target.classList.remove('screen-visible', 'screen-leaving');
   target.style.visibility = 'hidden';
-
+  target.classList.remove('screen-visible', 'screen-leaving');
   window.scrollTo({ top: 0, behavior: 'auto' });
 
-  setTimeout(() => {
+  screenTransitionTimer = setTimeout(() => {
     if (active) {
       active.hidden = true;
       active.classList.remove('screen-visible', 'screen-leaving');
     }
     target.style.visibility = '';
     requestAnimationFrame(() => {
-      target.classList.add('screen-visible');
+      requestAnimationFrame(() => target.classList.add('screen-visible'));
     });
-  }, 250);
+  }, 260);
 
   screenTransitionTimer = setTimeout(() => {
     screens.forEach(el => {
@@ -2858,9 +2982,8 @@ function showScreen(name) {
     });
     target.style.visibility = '';
     screenTransitionBusy = false;
-  }, 760);
+  }, 980);
 }
-
 function applyAccent(color) {
   const c = color || '#e0507a';
   document.documentElement.style.setProperty('--accent', c);
@@ -3362,6 +3485,8 @@ function toastPlain(text) {
 }
 
 function init() {
+  document.body.dataset.screen = 'setup';
+  document.documentElement.dataset.screen = 'setup';
   const boot = document.getElementById('boot-msg');
   if (boot) boot.remove();
   try {
