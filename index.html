@@ -1853,6 +1853,98 @@ body[data-screen="end"] .layout{animation:contentSettle .62s ease both;}
   #screen-game .actions-grid { grid-template-columns: 1fr !important; }
 }
 </style>
+
+<style id="pc-actions-final-fix">
+/* V21 — structure desktop indépendante des anciennes grid-area */
+@media (min-width: 900px) {
+  #screen-game .compact-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 360px !important;
+    grid-template-areas: none !important;
+    gap: 24px !important;
+    width: min(1180px, calc(100vw - 40px)) !important;
+    max-width: 1180px !important;
+    margin: 0 auto !important;
+    align-items: start !important;
+  }
+
+  #screen-game .campaign-command {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-area: auto !important;
+  }
+
+  #screen-game .campaign-command > * {
+    grid-area: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #screen-game #actions {
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    position: relative !important;
+    clear: both !important;
+    overflow: visible !important;
+  }
+
+  #screen-game #actions .actions-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+
+  #screen-game #actions .action {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #screen-game .campaign-drawers {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 360px !important;
+    min-width: 0 !important;
+    grid-area: auto !important;
+    position: sticky !important;
+    top: 18px !important;
+    align-self: start !important;
+  }
+
+  #screen-game .campaign-drawers > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1080px) {
+  #screen-game .compact-layout {
+    grid-template-columns: minmax(0, 1fr) 310px !important;
+    gap: 16px !important;
+    width: min(100%, calc(100vw - 28px)) !important;
+  }
+  #screen-game .campaign-drawers { max-width: 310px !important; }
+  #screen-game #actions .actions-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Empêche les anciennes règles area-* de reprendre la main */
+#screen-game .compact-layout > *,
+#screen-game .compact-layout .campaign-command > *,
+#screen-game .campaign-command,
+#screen-game .campaign-drawers {
+  grid-area: auto !important;
+}
+</style>
 </head>
 <body>
 <div id="page-transition" class="page-transition" aria-hidden="true"><div class="pt-bar pt-blue"></div><div class="pt-bar pt-white"></div><div class="pt-bar pt-red"></div><div class="pt-label">CAP PRÉSIDENCE</div></div>
@@ -1942,7 +2034,7 @@ body[data-screen="end"] .layout{animation:contentSettle .62s ease both;}
   <main class="layout compact-layout">
     <div class="campaign-command">
       <section id="weekly-brief" class="panel presidential-panel" aria-label="Briefing de la semaine"></section>
-      <section id="actions" class="panel area-actions" aria-label="Actions de la semaine"></section>
+      <section id="actions" class="panel" aria-label="Actions de la semaine"></section>
     </div>
 
     <aside class="campaign-drawers" aria-label="Informations de campagne">
@@ -1961,7 +2053,7 @@ body[data-screen="end"] .layout{animation:contentSettle .62s ease both;}
           <span class="drawer-label"><span class="drawer-icon" aria-hidden="true">🗳️</span><span class="drawer-copy"><strong>Sondages</strong><small id="poll-summary">Voir les intentions de vote</small></span></span>
           <span class="drawer-action" aria-hidden="true">Voir</span>
         </summary>
-        <section id="polls" class="panel area-polls" aria-label="Sondages"></section>
+        <section id="polls" class="panel" aria-label="Sondages"></section>
       </details>
 
       <details class="campaign-drawer">
@@ -1969,7 +2061,7 @@ body[data-screen="end"] .layout{animation:contentSettle .62s ease both;}
           <span class="drawer-label"><span class="drawer-icon" aria-hidden="true">📰</span><span class="drawer-copy"><strong>Dans la presse</strong><small id="news-summary">Les derniers titres de la campagne</small></span></span>
           <span class="drawer-action" aria-hidden="true">Voir</span>
         </summary>
-        <section id="news" class="panel area-news" aria-label="Actualités de la campagne"></section>
+        <section id="news" class="panel" aria-label="Actualités de la campagne"></section>
       </details>
 
       <details class="campaign-drawer">
